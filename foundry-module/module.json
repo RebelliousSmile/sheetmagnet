@@ -1,0 +1,21 @@
+{
+  "id": "sheet-magnet-connector",
+  "title": "Sheet Magnet Connector",
+  "description": "Expose actors to Sheet Magnet PWA for export to multiple formats",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "10",
+    "verified": "12"
+  },
+  "authors": [
+    {
+      "name": "Sheet Magnet",
+      "url": "https://github.com/sheet-magnet"
+    }
+  ],
+  "scripts": ["scripts/api.js"],
+  "socket": true,
+  "url": "https://github.com/sheet-magnet/foundry-module",
+  "license": "MIT",
+  "readme": "README.md"
+}

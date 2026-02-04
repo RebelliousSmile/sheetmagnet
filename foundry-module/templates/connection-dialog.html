@@ -1,0 +1,46 @@
+<div class="sheet-magnet-connection-dialog">
+  <section class="connection-info">
+    <h3>Connect Sheet Magnet</h3>
+    <p>Scan the QR code or enter the details manually in the Sheet Magnet app.</p>
+    
+    <div class="qr-container" style="text-align: center; margin: 1rem 0;">
+      <img 
+        src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{qrData}}" 
+        alt="QR Code"
+        style="border-radius: 8px; border: 2px solid #ccc;"
+      />
+    </div>
+
+    <div class="manual-connection">
+      <h4>Manual Connection</h4>
+      
+      <div class="form-group">
+        <label>API URL</label>
+        <div class="input-group" style="display: flex; gap: 0.5rem;">
+          <input type="text" value="{{connectionUrl}}" readonly style="flex: 1;" />
+          <button class="copy-url" title="Copy URL">
+            <i class="fas fa-copy"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Access Token</label>
+        <div class="input-group" style="display: flex; gap: 0.5rem;">
+          <input type="text" value="{{token}}" readonly style="flex: 1; font-family: monospace;" />
+          <button class="copy-token" title="Copy Token">
+            <i class="fas fa-copy"></i>
+          </button>
+          <button class="refresh-token" title="Generate New Token">
+            <i class="fas fa-sync"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="notes" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ccc; font-size: 0.9em; color: #666;">
+    <p><i class="fas fa-info-circle"></i> Token valid for this session only.</p>
+    <p><i class="fas fa-shield-alt"></i> Local network access only.</p>
+  </footer>
+</div>
