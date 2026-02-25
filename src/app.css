@@ -1,17 +1,31 @@
 /* Sheet Magnet - Mobile First CSS */
 
 :root {
-  /* Colors - Dark theme by default */
-  --color-bg: #1a1a2e;
-  --color-bg-secondary: #16213e;
-  --color-bg-card: #0f3460;
-  --color-primary: #e94560;
-  --color-primary-hover: #ff6b6b;
-  --color-text: #eaeaea;
-  --color-text-muted: #a0a0a0;
-  --color-border: #2a2a4e;
-  --color-success: #4ade80;
-  --color-error: #f87171;
+  /* Colors - Parchment & copper semantic palette */
+  /* Backgrounds — parchemin & papier */
+  --color-bg: #FAF6F0;
+  --color-bg-secondary: #F2ECE3;
+  --color-bg-card: #EDE6DA;
+  /* Accent primaire — cuivre magnétique */
+  --color-primary: #B8652A;
+  --color-primary-hover: #8F4E1E;
+  --color-primary-glow: rgba(184,101,42,0.12);
+  /* Accent secondaire — acier / tech */
+  --color-secondary: #4A6B82;
+  --color-secondary-hover: #374F60;
+  --color-secondary-glow: rgba(74,107,130,0.10);
+  /* Texte — encre */
+  --color-text: #2C2418;
+  --color-text-soft: #5C4F3D;
+  --color-text-muted: #8E8172;
+  --color-text-dim: #B5AA9A;
+  /* Bordures */
+  --color-border: #DDD5C8;
+  --color-border-light: #E8E1D6;
+  /* Fonctionnel */
+  --color-success: #5A8A4A;
+  --color-warning: #C49A2C;
+  --color-error: #A84032;
   
   /* Spacing - 4px base */
   --space-xs: 0.25rem;
@@ -31,9 +45,9 @@
   --radius-full: 9999px;
   
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 1px 2px rgba(44, 36, 24, 0.10);
+  --shadow-md: 0 4px 6px rgba(44, 36, 24, 0.14);
+  --shadow-lg: 0 10px 15px rgba(44, 36, 24, 0.18);
 }
 
 /* Reset */
@@ -256,7 +270,7 @@ label {
 /* Error message */
 .error {
   padding: var(--space-md);
-  background-color: rgba(248, 113, 113, 0.1);
+  background-color: rgba(168, 64, 50, 0.08);
   border: 1px solid var(--color-error);
   border-radius: var(--radius-md);
   color: var(--color-error);
