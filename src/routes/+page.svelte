@@ -4,6 +4,7 @@
   import { onMount, onDestroy } from 'svelte';
   import jsQR from 'jsqr';
   import Nav from '$lib/components/Nav.svelte';
+  import { lang } from '$lib/stores/lang';
   import { 
     connection, 
     connect, 
@@ -21,6 +22,38 @@
   let canvasEl: HTMLCanvasElement = $state()!;
   let stream: MediaStream | null = null;
   let animationId: number | null = null;
+
+  const t = $derived($lang === 'fr' ? {
+    heroSubtitle: 'Exportez vos feuilles de personnage TTRPG vers n\'importe quoi — PDF, images et plus encore.',
+    getStarted: 'Commencer',
+    connectTitle: 'Connexion à Foundry',
+    connectHint: 'Ouvrez Foundry VTT et cliquez sur le bouton Sheet Magnet pour obtenir vos identifiants de connexion.',
+    foundryUrl: 'URL Foundry',
+    accessToken: 'Jeton d\'accès',
+    connect: 'Connecter',
+    connecting: 'Connexion…',
+    scanTitle: 'Scanner le QR Code',
+    scanHint: 'Utilisez votre caméra pour scanner le QR code affiché dans Foundry et vous connecter automatiquement.',
+    scan: '📷 Scanner le QR Code',
+    cancel: 'Annuler',
+    invalidQr: 'QR code invalide. Veuillez scanner le QR code Sheet Magnet depuis Foundry.',
+    cameraError: 'Accès à la caméra refusé ou non disponible.'
+  } : {
+    heroSubtitle: 'Export your TTRPG character sheets to anything — PDF, images, and more.',
+    getStarted: 'Get Started',
+    connectTitle: 'Connect to Foundry',
+    connectHint: 'Open Foundry VTT and click the Sheet Magnet button to get your connection details.',
+    foundryUrl: 'Foundry URL',
+    accessToken: 'Access Token',
+    connect: 'Connect',
+    connecting: 'Connecting…',
+    scanTitle: 'Scan QR Code',
+    scanHint: 'Use your camera to scan the QR code displayed in Foundry to connect automatically.',
+    scan: '📷 Scan QR Code',
+    cancel: 'Cancel',
+    invalidQr: 'Invalid QR code. Please scan the Sheet Magnet QR code from Foundry.',
+    cameraError: 'Camera access denied or not available.'
+  });
 
   // Check for encoded data in URL (from QR code deep link)
   onMount(() => {
@@ -71,7 +104,7 @@
       await videoEl.play();
       scanFrame();
     } catch {
-      scanError = 'Camera access denied or not available.';
+      scanError = t.cameraError;
     }
   }
 
@@ -117,7 +150,7 @@
     } catch {
       // not a URL
     }
-    scanError = 'Invalid QR code. Please scan the Sheet Magnet QR code from Foundry.';
+    scanError = t.invalidQr;
   }
 
   // Redirect if already connected
@@ -135,72 +168,13 @@
   <!-- Hero -->
   <section class="hero">
     <h1>🧲 Sheet Magnet</h1>
-    <p class="hero-subtitle">Export your TTRPG character sheets to anything — PDF, images, and more.</p>
-    <a href="#connect" class="btn btn-primary">Get Started</a>
-  </section>
-
-  <!-- Features -->
-  <section id="features" class="landing-section">
-    <h2>Features</h2>
-    <div class="features-grid">
-      <div class="feature-card">
-        <span class="feature-icon">📡</span>
-        <h3>Easy Connection</h3>
-        <p>Connect to your Foundry VTT server by entering the URL and access token, or simply scan a QR code.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">📄</span>
-        <h3>Multiple Formats</h3>
-        <p>Export to PDF (A3, A4, A5, A6) or image formats like poker cards — choose what suits your game.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">🎲</span>
-        <h3>Any Game System</h3>
-        <p>Works with any Foundry VTT game system. Select one or more characters and export them in seconds.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">📱</span>
-        <h3>Mobile Friendly</h3>
-        <p>Designed mobile-first so you can export character sheets directly from your phone or tablet.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- FAQ -->
-  <section id="faq" class="landing-section">
-    <h2>FAQ</h2>
-    <div class="faq-list">
-      <details class="faq-item">
-        <summary>What is Sheet Magnet?</summary>
-        <p>Sheet Magnet is a companion web app for Foundry VTT that lets you export character sheets to PDF, images, and other formats directly from your browser or mobile device.</p>
-      </details>
-      <details class="faq-item">
-        <summary>How do I connect to Foundry?</summary>
-        <p>Open Foundry VTT and click the Sheet Magnet button. You will get a URL and an access token. Enter these below, or scan the QR code displayed in Foundry to connect automatically.</p>
-      </details>
-      <details class="faq-item">
-        <summary>Which export formats are supported?</summary>
-        <p>Sheet Magnet currently supports PDF (A3, A4, A5, A6) and PNG (poker card). More formats will be added in future updates.</p>
-      </details>
-      <details class="faq-item">
-        <summary>Do I need to install anything?</summary>
-        <p>You only need the Sheet Magnet Foundry module installed in your Foundry VTT server. The web app runs entirely in your browser with no installation required.</p>
-      </details>
-    </div>
-  </section>
-
-  <!-- Content / About -->
-  <section id="content" class="landing-section">
-    <h2>About Sheet Magnet</h2>
-    <div class="card about-card">
-      <p>Sheet Magnet bridges the gap between Foundry VTT and the physical table. Whether you want a printed PDF to hand out to your players, a card-sized character reference, or a digital image to share online, Sheet Magnet makes it effortless.</p>
-      <p style="margin-top: var(--space-md);">Built with ❤️ for the tabletop RPG community. Sheet Magnet is open source and constantly improving thanks to community feedback.</p>
-    </div>
+    <p class="hero-subtitle">{t.heroSubtitle}</p>
+    <a href="#connect" class="btn btn-primary">{t.getStarted}</a>
   </section>
 
   <!-- Connect -->
   <section id="connect" class="landing-section">
-    <h2>Connect to Foundry</h2>
+    <h2>{t.connectTitle}</h2>
 
     <div class="steps">
       <span class="step active"></span>
@@ -211,11 +185,11 @@
 
     <div class="card">
       <p style="color: var(--color-text-muted); margin-bottom: var(--space-lg);">
-        Open Foundry VTT and click the Sheet Magnet button to get your connection details.
+        {t.connectHint}
       </p>
 
       <div class="form-group">
-        <label for="url">Foundry URL</label>
+        <label for="url">{t.foundryUrl}</label>
         <input 
           id="url"
           type="url" 
@@ -226,7 +200,7 @@
       </div>
 
       <div class="form-group">
-        <label for="token">Access Token</label>
+        <label for="token">{t.accessToken}</label>
         <input 
           id="token"
           type="text" 
@@ -250,17 +224,17 @@
       >
         {#if isLoading}
           <span class="spinner"></span>
-          Connecting...
+          {t.connecting}
         {:else}
-          Connect
+          {t.connect}
         {/if}
       </button>
     </div>
 
     <div class="card" style="margin-top: var(--space-xl);">
-      <h3 style="margin-bottom: var(--space-md);">Scan QR Code</h3>
+      <h3 style="margin-bottom: var(--space-md);">{t.scanTitle}</h3>
       <p style="color: var(--color-text-muted); margin-bottom: var(--space-md);">
-        Use your camera to scan the QR code displayed in Foundry to connect automatically.
+        {t.scanHint}
       </p>
 
       {#if !isScanning}
@@ -269,7 +243,7 @@
           onclick={startScanner}
           disabled={isLoading}
         >
-          📷 Scan QR Code
+          {t.scan}
         </button>
       {:else}
         <div style="position: relative; width: 100%; border-radius: var(--radius-md); overflow: hidden; background: #000;">
@@ -289,7 +263,7 @@
           onclick={stopScanner}
           style="margin-top: var(--space-md);"
         >
-          Cancel
+          {t.cancel}
         </button>
       {/if}
 
@@ -340,90 +314,9 @@
     margin-bottom: var(--space-lg);
   }
 
-  /* Features */
-  .features-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-md);
-  }
-
-  .feature-card {
-    background-color: var(--color-bg-card);
-    border-radius: var(--radius-lg);
-    padding: var(--space-lg);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .feature-icon {
-    font-size: 1.75rem;
-  }
-
-  .feature-card h3 {
-    font-size: 1rem;
-  }
-
-  .feature-card p {
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
-    line-height: 1.5;
-  }
-
-  /* FAQ */
-  .faq-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .faq-item {
-    background-color: var(--color-bg-card);
-    border-radius: var(--radius-md);
-    padding: var(--space-md);
-  }
-
-  .faq-item summary {
-    font-weight: 600;
-    cursor: pointer;
-    list-style: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-sm);
-  }
-
-  .faq-item summary::after {
-    content: '▸';
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
-    transition: transform 0.2s ease;
-  }
-
-  .faq-item[open] summary::after {
-    transform: rotate(90deg);
-  }
-
-  .faq-item p {
-    margin-top: var(--space-md);
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-    line-height: 1.6;
-  }
-
-  /* About */
-  .about-card p {
-    color: var(--color-text-muted);
-    line-height: 1.7;
-  }
-
   @media (min-width: 640px) {
     .hero h1 {
       font-size: 2.5rem;
-    }
-
-    .features-grid {
-      grid-template-columns: repeat(2, 1fr);
     }
 
     .landing-section {

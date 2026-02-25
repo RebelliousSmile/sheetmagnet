@@ -1,5 +1,12 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  import { lang } from '$lib/stores/lang';
+
   let menuOpen = $state(false);
+
+  onMount(() => {
+    lang.init();
+  });
 
   function toggleMenu() {
     menuOpen = !menuOpen;
@@ -8,11 +15,16 @@
   function closeMenu() {
     menuOpen = false;
   }
+
+  const t = $derived($lang === 'fr'
+    ? { features: 'Fonctionnalités', faq: 'FAQ', contact: 'Contact', start: 'Commencer' }
+    : { features: 'Features', faq: 'FAQ', contact: 'Contact', start: 'Get Started' }
+  );
 </script>
 
 <nav class="nav">
   <div class="nav-inner">
-    <a href="#top" class="nav-brand" onclick={closeMenu}>
+    <a href="/" class="nav-brand" onclick={closeMenu}>
       🧲 Sheet Magnet
     </a>
 
@@ -21,10 +33,15 @@
     </button>
 
     <ul class="nav-links" class:open={menuOpen}>
-      <li><a href="#features" onclick={closeMenu}>Features</a></li>
-      <li><a href="#faq" onclick={closeMenu}>FAQ</a></li>
-      <li><a href="#content" onclick={closeMenu}>About</a></li>
-      <li><a href="#connect" class="nav-cta" onclick={closeMenu}>Get Started</a></li>
+      <li><a href="/features" onclick={closeMenu}>{t.features}</a></li>
+      <li><a href="/faq" onclick={closeMenu}>{t.faq}</a></li>
+      <li><a href="/contact" onclick={closeMenu}>{t.contact}</a></li>
+      <li>
+        <button class="nav-lang" onclick={() => { lang.toggle(); closeMenu(); }}>
+          {$lang === 'en' ? 'FR' : 'EN'}
+        </button>
+      </li>
+      <li><a href="/#connect" class="nav-cta" onclick={closeMenu}>{t.start}</a></li>
     </ul>
   </div>
 </nav>
@@ -139,5 +156,22 @@
     .nav-links li a.nav-cta:hover {
       background-color: var(--color-primary-hover);
     }
+  }
+
+  .nav-lang {
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: var(--space-xs) var(--space-sm);
+    transition: color 0.15s ease;
+  }
+
+  .nav-lang:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
   }
 </style>
