@@ -171,7 +171,7 @@ npm run preview
 - [ ] System-specific templates (City of Mist, D&D 5e, etc.)
 - [ ] Printful API integration
 - [ ] More print formats (stickers, pencil wraps, mugs)
-- [ ] QR code scanner for mobile
+- [x] QR code scanner for mobile
 
 ## Security
 
