@@ -8,18 +8,33 @@ dist/
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-AGENTS.md
-CLAUDE.md
-CONTRIBUTING.md
+coverage/
 
 # <AIDD>
 .mcp.json
 aidd*
 aidd/
-aidd_docs/templates/custom/
 docs/
 worktrees/
 .aidd/
 .vscode/
-.claude/
+.claude/*
+!.claude/commands/
+.claude/commands/*
+!.claude/commands/custom/
+!.claude/rules/
+.claude/rules/*
+!.claude/rules/custom/
+!.claude/agents/
+.claude/agents/*
+!.claude/agents/custom-*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/custom/
+.github/*
+!.github/workflows
+CLAUDE.md
+AGENTS.md
+CONTRIBUTING.md
+migrate-docs.prompt.md
 # </AIDD>
