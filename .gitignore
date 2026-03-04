@@ -12,11 +12,12 @@ coverage/
 
 # <AIDD>
 .mcp.json
-aidd*
-aidd/
-docs/
-worktrees/
 .aidd/
+aidd_docs/*
+!aidd_docs/templates/
+aidd_docs/templates/*
+!aidd_docs/templates/custom/
+worktrees/
 .vscode/
 .claude/*
 !.claude/commands/
@@ -36,5 +37,4 @@ worktrees/
 CLAUDE.md
 AGENTS.md
 CONTRIBUTING.md
-migrate-docs.prompt.md
 # </AIDD>
