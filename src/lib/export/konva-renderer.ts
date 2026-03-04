@@ -96,6 +96,7 @@ export class KonvaRenderer {
       opacity: style.opacity ?? 1,
     });
 
+    // biome-ignore lint/style/noNonNullAssertion: renderElement() guards layer before calling this method
     this.layer!.add(text);
   }
 
@@ -169,6 +170,7 @@ export class KonvaRenderer {
       opacity: style.opacity ?? 1,
     });
 
+    // biome-ignore lint/style/noNonNullAssertion: renderElement() guards layer before calling this method
     this.layer!.add(rect);
   }
 
@@ -184,6 +186,7 @@ export class KonvaRenderer {
       opacity: style.opacity ?? 1,
     });
 
+    // biome-ignore lint/style/noNonNullAssertion: renderElement() guards layer before calling this method
     this.layer!.add(line);
   }
 
