@@ -13,10 +13,11 @@ export const lang = {
     }
   },
   toggle() {
-    update(l => {
+    update((l) => {
       const next = l === 'en' ? 'fr' : 'en';
-      if (typeof localStorage !== 'undefined') localStorage.setItem('lang', next);
+      if (typeof localStorage !== 'undefined')
+        localStorage.setItem('lang', next);
       return next;
     });
-  }
+  },
 };

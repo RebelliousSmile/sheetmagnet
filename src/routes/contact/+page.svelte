@@ -1,88 +1,92 @@
 <script lang="ts">
-  import Nav from '$lib/components/Nav.svelte';
-  import { lang } from '$lib/stores/lang';
+import Nav from '$lib/components/Nav.svelte';
+import { lang } from '$lib/stores/lang';
 
-  const en = {
-    title: 'Contact',
-    subtitle: 'Sheet Magnet is an open-source project. The best way to get in touch is through GitHub.',
-    sections: [
-      {
-        icon: '🐛',
-        title: 'Report a Bug',
-        desc: 'Found something that isn\'t working? Open an issue on GitHub and describe what happened.',
-        link: 'https://github.com/RebelliousSmile/sheetmagnet/issues',
-        label: 'Open an Issue'
-      },
-      {
-        icon: '💡',
-        title: 'Feature Request',
-        desc: 'Have an idea for a new feature or improvement? Share it with the community on GitHub.',
-        link: 'https://github.com/RebelliousSmile/sheetmagnet/issues',
-        label: 'Suggest a Feature'
-      },
-      {
-        icon: '🤝',
-        title: 'Contribute',
-        desc: 'Fork the repository, create a feature branch, and submit a pull request. All contributions are welcome.',
-        link: 'https://github.com/RebelliousSmile/sheetmagnet',
-        label: 'View on GitHub'
-      }
-    ],
-    techTitle: 'Tech Stack',
-    tech: [
-      ['Component', 'Technology'],
-      ['PWA Framework', 'SvelteKit 2, Svelte 5'],
-      ['PDF Generation', 'pdf-lib'],
-      ['Canvas / Preview', 'Konva.js'],
-      ['Template System', 'TypeScript declarative layouts'],
-      ['Styling', 'Custom CSS (mobile-first)'],
-      ['Foundry Module', 'Vanilla JS']
-    ],
-    licenseTitle: 'License',
-    license: 'Sheet Magnet is released under the MIT License. You are free to use, modify and distribute it.'
-  };
+const en = {
+  title: 'Contact',
+  subtitle:
+    'Sheet Magnet is an open-source project. The best way to get in touch is through GitHub.',
+  sections: [
+    {
+      icon: '🐛',
+      title: 'Report a Bug',
+      desc: "Found something that isn't working? Open an issue on GitHub and describe what happened.",
+      link: 'https://github.com/RebelliousSmile/sheetmagnet/issues',
+      label: 'Open an Issue',
+    },
+    {
+      icon: '💡',
+      title: 'Feature Request',
+      desc: 'Have an idea for a new feature or improvement? Share it with the community on GitHub.',
+      link: 'https://github.com/RebelliousSmile/sheetmagnet/issues',
+      label: 'Suggest a Feature',
+    },
+    {
+      icon: '🤝',
+      title: 'Contribute',
+      desc: 'Fork the repository, create a feature branch, and submit a pull request. All contributions are welcome.',
+      link: 'https://github.com/RebelliousSmile/sheetmagnet',
+      label: 'View on GitHub',
+    },
+  ],
+  techTitle: 'Tech Stack',
+  tech: [
+    ['Component', 'Technology'],
+    ['PWA Framework', 'SvelteKit 2, Svelte 5'],
+    ['PDF Generation', 'pdf-lib'],
+    ['Canvas / Preview', 'Konva.js'],
+    ['Template System', 'TypeScript declarative layouts'],
+    ['Styling', 'Custom CSS (mobile-first)'],
+    ['Foundry Module', 'Vanilla JS'],
+  ],
+  licenseTitle: 'License',
+  license:
+    'Sheet Magnet is released under the MIT License. You are free to use, modify and distribute it.',
+};
 
-  const fr = {
-    title: 'Contact',
-    subtitle: 'Sheet Magnet est un projet open source. Le meilleur moyen de nous contacter est via GitHub.',
-    sections: [
-      {
-        icon: '🐛',
-        title: 'Signaler un bug',
-        desc: 'Quelque chose ne fonctionne pas ? Ouvrez un ticket sur GitHub et décrivez ce qui s\'est passé.',
-        link: 'https://github.com/RebelliousSmile/sheetmagnet/issues',
-        label: 'Ouvrir un ticket'
-      },
-      {
-        icon: '💡',
-        title: 'Demande de fonctionnalité',
-        desc: 'Vous avez une idée de nouvelle fonctionnalité ou d\'amélioration ? Partagez-la avec la communauté sur GitHub.',
-        link: 'https://github.com/RebelliousSmile/sheetmagnet/issues',
-        label: 'Suggérer une fonctionnalité'
-      },
-      {
-        icon: '🤝',
-        title: 'Contribuer',
-        desc: 'Forkez le dépôt, créez une branche de fonctionnalité et soumettez une pull request. Toutes les contributions sont les bienvenues.',
-        link: 'https://github.com/RebelliousSmile/sheetmagnet',
-        label: 'Voir sur GitHub'
-      }
-    ],
-    techTitle: 'Stack technique',
-    tech: [
-      ['Composant', 'Technologie'],
-      ['Framework PWA', 'SvelteKit 2, Svelte 5'],
-      ['Génération PDF', 'pdf-lib'],
-      ['Canvas / Aperçu', 'Konva.js'],
-      ['Système de templates', 'Layouts déclaratifs TypeScript'],
-      ['Style', 'CSS personnalisé (mobile-first)'],
-      ['Module Foundry', 'Vanilla JS']
-    ],
-    licenseTitle: 'Licence',
-    license: 'Sheet Magnet est publié sous la licence MIT. Vous êtes libre de l\'utiliser, le modifier et le distribuer.'
-  };
+const fr = {
+  title: 'Contact',
+  subtitle:
+    'Sheet Magnet est un projet open source. Le meilleur moyen de nous contacter est via GitHub.',
+  sections: [
+    {
+      icon: '🐛',
+      title: 'Signaler un bug',
+      desc: "Quelque chose ne fonctionne pas ? Ouvrez un ticket sur GitHub et décrivez ce qui s'est passé.",
+      link: 'https://github.com/RebelliousSmile/sheetmagnet/issues',
+      label: 'Ouvrir un ticket',
+    },
+    {
+      icon: '💡',
+      title: 'Demande de fonctionnalité',
+      desc: "Vous avez une idée de nouvelle fonctionnalité ou d'amélioration ? Partagez-la avec la communauté sur GitHub.",
+      link: 'https://github.com/RebelliousSmile/sheetmagnet/issues',
+      label: 'Suggérer une fonctionnalité',
+    },
+    {
+      icon: '🤝',
+      title: 'Contribuer',
+      desc: 'Forkez le dépôt, créez une branche de fonctionnalité et soumettez une pull request. Toutes les contributions sont les bienvenues.',
+      link: 'https://github.com/RebelliousSmile/sheetmagnet',
+      label: 'Voir sur GitHub',
+    },
+  ],
+  techTitle: 'Stack technique',
+  tech: [
+    ['Composant', 'Technologie'],
+    ['Framework PWA', 'SvelteKit 2, Svelte 5'],
+    ['Génération PDF', 'pdf-lib'],
+    ['Canvas / Aperçu', 'Konva.js'],
+    ['Système de templates', 'Layouts déclaratifs TypeScript'],
+    ['Style', 'CSS personnalisé (mobile-first)'],
+    ['Module Foundry', 'Vanilla JS'],
+  ],
+  licenseTitle: 'Licence',
+  license:
+    "Sheet Magnet est publié sous la licence MIT. Vous êtes libre de l'utiliser, le modifier et le distribuer.",
+};
 
-  const t = $derived($lang === 'fr' ? fr : en);
+const t = $derived($lang === 'fr' ? fr : en);
 </script>
 
 <Nav />

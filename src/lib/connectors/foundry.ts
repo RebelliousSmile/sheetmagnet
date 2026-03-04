@@ -60,7 +60,7 @@ export class FoundryConnectionError extends Error {
   constructor(
     message: string,
     public status?: number,
-    public code?: string
+    public code?: string,
   ) {
     super(message);
     this.name = 'FoundryConnectionError';
@@ -95,7 +95,11 @@ export class FoundryConnector {
       const config: ConnectionConfig = JSON.parse(decoded);
       return new FoundryConnector(config);
     } catch {
-      throw new FoundryConnectionError('Invalid connection data', undefined, 'INVALID_DATA');
+      throw new FoundryConnectionError(
+        'Invalid connection data',
+        undefined,
+        'INVALID_DATA',
+      );
     }
   }
 
@@ -104,29 +108,35 @@ export class FoundryConnector {
    */
   static fromManualInput(url: string, token: string): FoundryConnector {
     if (!url || !token) {
-      throw new FoundryConnectionError('URL and token are required', undefined, 'MISSING_PARAMS');
+      throw new FoundryConnectionError(
+        'URL and token are required',
+        undefined,
+        'MISSING_PARAMS',
+      );
     }
     return new FoundryConnector({ url, token });
   }
 
   private async fetch<T>(endpoint: string): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    
+
     try {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${this.token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        const error = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }));
         throw new FoundryConnectionError(
           error.error || `HTTP ${response.status}`,
           response.status,
-          response.status === 401 ? 'UNAUTHORIZED' : 'HTTP_ERROR'
+          response.status === 401 ? 'UNAUTHORIZED' : 'HTTP_ERROR',
         );
       }
 
@@ -135,12 +145,12 @@ export class FoundryConnector {
       if (error instanceof FoundryConnectionError) {
         throw error;
       }
-      
+
       // Network error (CORS, offline, etc.)
       throw new FoundryConnectionError(
         'Cannot connect to Foundry. Make sure you are on the same network.',
         undefined,
-        'NETWORK_ERROR'
+        'NETWORK_ERROR',
       );
     }
   }
@@ -150,13 +160,17 @@ export class FoundryConnector {
    */
   async connect(): Promise<FoundryServerInfo> {
     const url = `${this.baseUrl}/info`;
-    
+
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new FoundryConnectionError('Foundry server not responding', response.status);
+        throw new FoundryConnectionError(
+          'Foundry server not responding',
+          response.status,
+        );
       }
       this.serverInfo = await response.json();
+      // biome-ignore lint/style/noNonNullAssertion: serverInfo is guaranteed non-null immediately after assignment on the previous line
       return this.serverInfo!;
     } catch (error) {
       if (error instanceof FoundryConnectionError) {
@@ -165,7 +179,7 @@ export class FoundryConnector {
       throw new FoundryConnectionError(
         'Cannot reach Foundry server. Check the URL and ensure Sheet Magnet module is installed.',
         undefined,
-        'CONNECTION_FAILED'
+        'CONNECTION_FAILED',
       );
     }
   }
@@ -189,7 +203,9 @@ export class FoundryConnector {
    */
   async getActorImageUrl(actorId: string): Promise<string | null> {
     try {
-      const result = await this.fetch<{ url: string; absolute: string }>(`/actors/${actorId}/image`);
+      const result = await this.fetch<{ url: string; absolute: string }>(
+        `/actors/${actorId}/image`,
+      );
       return result.absolute;
     } catch {
       return null;

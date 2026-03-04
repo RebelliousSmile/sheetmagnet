@@ -1,164 +1,183 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { page } from '$app/stores';
-  import { onMount, onDestroy } from 'svelte';
-  import jsQR from 'jsqr';
-  import Nav from '$lib/components/Nav.svelte';
-  import { lang } from '$lib/stores/lang';
-  import { 
-    connection, 
-    connect, 
-    connectFromEncoded,
-    isConnected 
-  } from '$lib/stores/session';
+import { goto } from '$app/navigation';
+import { page } from '$app/stores';
+import { onMount, onDestroy } from 'svelte';
+import jsQR from 'jsqr';
+import Nav from '$lib/components/Nav.svelte';
+import { lang } from '$lib/stores/lang';
+import {
+  connection,
+  connect,
+  connectFromEncoded,
+  isConnected,
+} from '$lib/stores/session';
 
-  let url = $state('');
-  let token = $state('');
-  let isLoading = $state(false);
-  let isScanning = $state(false);
-  let scanError = $state('');
+let url = $state('');
+let token = $state('');
+let isLoading = $state(false);
+let isScanning = $state(false);
+let scanError = $state('');
 
-  let videoEl: HTMLVideoElement = $state()!;
-  let canvasEl: HTMLCanvasElement = $state()!;
-  let stream: MediaStream | null = null;
-  let animationId: number | null = null;
+// biome-ignore lint/style/noNonNullAssertion: Svelte 5 DOM binding — bound via bind:this before use
+let videoEl: HTMLVideoElement = $state()!;
+// biome-ignore lint/style/noNonNullAssertion: Svelte 5 DOM binding — bound via bind:this before use
+let canvasEl: HTMLCanvasElement = $state()!;
+let stream: MediaStream | null = null;
+let animationId: number | null = null;
 
-  const t = $derived($lang === 'fr' ? {
-    heroSubtitle: 'Exportez vos feuilles de personnage TTRPG vers n\'importe quoi — PDF, images et plus encore.',
-    getStarted: 'Commencer',
-    connectTitle: 'Connexion à Foundry',
-    connectHint: 'Ouvrez Foundry VTT et cliquez sur le bouton Sheet Magnet pour obtenir vos identifiants de connexion.',
-    foundryUrl: 'URL Foundry',
-    accessToken: 'Jeton d\'accès',
-    connect: 'Connecter',
-    connecting: 'Connexion…',
-    scanTitle: 'Scanner le QR Code',
-    scanHint: 'Utilisez votre caméra pour scanner le QR code affiché dans Foundry et vous connecter automatiquement.',
-    scan: '📷 Scanner le QR Code',
-    cancel: 'Annuler',
-    invalidQr: 'QR code invalide. Veuillez scanner le QR code Sheet Magnet depuis Foundry.',
-    cameraError: 'Accès à la caméra refusé ou non disponible.'
-  } : {
-    heroSubtitle: 'Export your TTRPG character sheets to anything — PDF, images, and more.',
-    getStarted: 'Get Started',
-    connectTitle: 'Connect to Foundry',
-    connectHint: 'Open Foundry VTT and click the Sheet Magnet button to get your connection details.',
-    foundryUrl: 'Foundry URL',
-    accessToken: 'Access Token',
-    connect: 'Connect',
-    connecting: 'Connecting…',
-    scanTitle: 'Scan QR Code',
-    scanHint: 'Use your camera to scan the QR code displayed in Foundry to connect automatically.',
-    scan: '📷 Scan QR Code',
-    cancel: 'Cancel',
-    invalidQr: 'Invalid QR code. Please scan the Sheet Magnet QR code from Foundry.',
-    cameraError: 'Camera access denied or not available.'
-  });
-
-  // Check for encoded data in URL (from QR code deep link)
-  onMount(() => {
-    const params = $page.url.searchParams;
-    const encodedData = params.get('data');
-    
-    if (encodedData) {
-      handleEncodedConnect(encodedData);
-    }
-  });
-
-  onDestroy(() => {
-    stopScanner();
-  });
-
-  async function handleEncodedConnect(encoded: string) {
-    isLoading = true;
-    const success = await connectFromEncoded(encoded);
-    isLoading = false;
-    
-    if (success) {
-      goto('/select');
-    }
-  }
-
-  async function handleManualConnect() {
-    if (!url || !token) return;
-    
-    isLoading = true;
-    const success = await connect(url, token);
-    isLoading = false;
-    
-    if (success) {
-      goto('/select');
-    }
-  }
-
-  async function startScanner() {
-    scanError = '';
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
-      isScanning = true;
-      // Wait for the video element to be in the DOM
-      await new Promise(resolve => setTimeout(resolve, 50));
-      videoEl.srcObject = stream;
-      await videoEl.play();
-      scanFrame();
-    } catch {
-      scanError = t.cameraError;
-    }
-  }
-
-  function stopScanner() {
-    isScanning = false;
-    if (animationId !== null) {
-      cancelAnimationFrame(animationId);
-      animationId = null;
-    }
-    if (stream) {
-      stream.getTracks().forEach(t => t.stop());
-      stream = null;
-    }
-  }
-
-  function scanFrame() {
-    if (!isScanning || !videoEl || videoEl.readyState < videoEl.HAVE_ENOUGH_DATA) {
-      animationId = requestAnimationFrame(scanFrame);
-      return;
-    }
-    const ctx = canvasEl.getContext('2d')!;
-    canvasEl.width = videoEl.videoWidth;
-    canvasEl.height = videoEl.videoHeight;
-    ctx.drawImage(videoEl, 0, 0);
-    const imageData = ctx.getImageData(0, 0, canvasEl.width, canvasEl.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
-    if (code) {
-      handleQRResult(code.data);
-      return;
-    }
-    animationId = requestAnimationFrame(scanFrame);
-  }
-
-  function handleQRResult(data: string) {
-    stopScanner();
-    try {
-      const urlObj = new URL(data);
-      const encoded = urlObj.searchParams.get('data');
-      if (encoded) {
-        handleEncodedConnect(encoded);
-        return;
+const t = $derived(
+  $lang === 'fr'
+    ? {
+        heroSubtitle:
+          "Exportez vos feuilles de personnage TTRPG vers n'importe quoi — PDF, images et plus encore.",
+        getStarted: 'Commencer',
+        connectTitle: 'Connexion à Foundry',
+        connectHint:
+          'Ouvrez Foundry VTT et cliquez sur le bouton Sheet Magnet pour obtenir vos identifiants de connexion.',
+        foundryUrl: 'URL Foundry',
+        accessToken: "Jeton d'accès",
+        connect: 'Connecter',
+        connecting: 'Connexion…',
+        scanTitle: 'Scanner le QR Code',
+        scanHint:
+          'Utilisez votre caméra pour scanner le QR code affiché dans Foundry et vous connecter automatiquement.',
+        scan: '📷 Scanner le QR Code',
+        cancel: 'Annuler',
+        invalidQr:
+          'QR code invalide. Veuillez scanner le QR code Sheet Magnet depuis Foundry.',
+        cameraError: 'Accès à la caméra refusé ou non disponible.',
       }
-    } catch {
-      // not a URL
-    }
-    scanError = t.invalidQr;
-  }
+    : {
+        heroSubtitle:
+          'Export your TTRPG character sheets to anything — PDF, images, and more.',
+        getStarted: 'Get Started',
+        connectTitle: 'Connect to Foundry',
+        connectHint:
+          'Open Foundry VTT and click the Sheet Magnet button to get your connection details.',
+        foundryUrl: 'Foundry URL',
+        accessToken: 'Access Token',
+        connect: 'Connect',
+        connecting: 'Connecting…',
+        scanTitle: 'Scan QR Code',
+        scanHint:
+          'Use your camera to scan the QR code displayed in Foundry to connect automatically.',
+        scan: '📷 Scan QR Code',
+        cancel: 'Cancel',
+        invalidQr:
+          'Invalid QR code. Please scan the Sheet Magnet QR code from Foundry.',
+        cameraError: 'Camera access denied or not available.',
+      },
+);
 
-  // Redirect if already connected
-  $effect(() => {
-    if ($isConnected) {
-      goto('/select');
+// Check for encoded data in URL (from QR code deep link)
+onMount(() => {
+  const params = $page.url.searchParams;
+  const encodedData = params.get('data');
+
+  if (encodedData) {
+    handleEncodedConnect(encodedData);
+  }
+});
+
+onDestroy(() => {
+  stopScanner();
+});
+
+async function handleEncodedConnect(encoded: string) {
+  isLoading = true;
+  const success = await connectFromEncoded(encoded);
+  isLoading = false;
+
+  if (success) {
+    goto('/select');
+  }
+}
+
+async function handleManualConnect() {
+  if (!url || !token) return;
+
+  isLoading = true;
+  const success = await connect(url, token);
+  isLoading = false;
+
+  if (success) {
+    goto('/select');
+  }
+}
+
+async function startScanner() {
+  scanError = '';
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' },
+    });
+    isScanning = true;
+    // Wait for the video element to be in the DOM
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    videoEl.srcObject = stream;
+    await videoEl.play();
+    scanFrame();
+  } catch {
+    scanError = t.cameraError;
+  }
+}
+
+function stopScanner() {
+  isScanning = false;
+  if (animationId !== null) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
+  }
+  if (stream) {
+    for (const t of stream.getTracks()) t.stop();
+    stream = null;
+  }
+}
+
+function scanFrame() {
+  if (
+    !isScanning ||
+    !videoEl ||
+    videoEl.readyState < videoEl.HAVE_ENOUGH_DATA
+  ) {
+    animationId = requestAnimationFrame(scanFrame);
+    return;
+  }
+  // biome-ignore lint/style/noNonNullAssertion: getContext('2d') is always non-null on a valid HTMLCanvasElement when no other context type is active
+  const ctx = canvasEl.getContext('2d')!;
+  canvasEl.width = videoEl.videoWidth;
+  canvasEl.height = videoEl.videoHeight;
+  ctx.drawImage(videoEl, 0, 0);
+  const imageData = ctx.getImageData(0, 0, canvasEl.width, canvasEl.height);
+  const code = jsQR(imageData.data, imageData.width, imageData.height);
+  if (code) {
+    handleQRResult(code.data);
+    return;
+  }
+  animationId = requestAnimationFrame(scanFrame);
+}
+
+function handleQRResult(data: string) {
+  stopScanner();
+  try {
+    const urlObj = new URL(data);
+    const encoded = urlObj.searchParams.get('data');
+    if (encoded) {
+      handleEncodedConnect(encoded);
+      return;
     }
-  });
+  } catch {
+    // not a URL
+  }
+  scanError = t.invalidQr;
+}
+
+// Redirect if already connected
+$effect(() => {
+  if ($isConnected) {
+    goto('/select');
+  }
+});
 </script>
 
 <Nav />

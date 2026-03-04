@@ -3,11 +3,11 @@
  * Holds connection state and cached actor data for current session
  */
 
-import { writable, derived, get } from 'svelte/store';
-import type { 
-  FoundryServerInfo, 
-  ActorSummary, 
-  ActorData 
+import { derived, get, writable } from 'svelte/store';
+import type {
+  ActorData,
+  ActorSummary,
+  FoundryServerInfo,
 } from '$lib/connectors/foundry';
 import { FoundryConnector } from '$lib/connectors/foundry';
 
@@ -23,7 +23,7 @@ const initialConnectionState: ConnectionState = {
   connector: null,
   serverInfo: null,
   status: 'disconnected',
-  error: null
+  error: null,
 };
 
 export const connection = writable<ConnectionState>(initialConnectionState);
@@ -42,32 +42,32 @@ export const selectedActors = derived(
   [selectedActorIds, actorCache],
   ([$ids, $cache]) => {
     return Array.from($ids)
-      .map(id => $cache.get(id))
+      .map((id) => $cache.get(id))
       .filter((a): a is ActorData => a !== undefined);
-  }
+  },
 );
 
 // Derived: is connected
 export const isConnected = derived(
   connection,
-  $conn => $conn.status === 'connected'
+  ($conn) => $conn.status === 'connected',
 );
 
 // Actions
 export async function connect(url: string, token: string): Promise<boolean> {
-  connection.update(s => ({ ...s, status: 'connecting', error: null }));
-  
+  connection.update((s) => ({ ...s, status: 'connecting', error: null }));
+
   try {
     const connector = FoundryConnector.fromManualInput(url, token);
     const serverInfo = await connector.connect();
-    
+
     connection.set({
       connector,
       serverInfo,
       status: 'connected',
-      error: null
+      error: null,
     });
-    
+
     return true;
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Connection failed';
@@ -75,26 +75,26 @@ export async function connect(url: string, token: string): Promise<boolean> {
       connector: null,
       serverInfo: null,
       status: 'error',
-      error: message
+      error: message,
     });
     return false;
   }
 }
 
 export async function connectFromEncoded(encoded: string): Promise<boolean> {
-  connection.update(s => ({ ...s, status: 'connecting', error: null }));
-  
+  connection.update((s) => ({ ...s, status: 'connecting', error: null }));
+
   try {
     const connector = FoundryConnector.fromEncodedData(encoded);
     const serverInfo = await connector.connect();
-    
+
     connection.set({
       connector,
       serverInfo,
       status: 'connected',
-      error: null
+      error: null,
     });
-    
+
     return true;
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Connection failed';
@@ -102,7 +102,7 @@ export async function connectFromEncoded(encoded: string): Promise<boolean> {
       connector: null,
       serverInfo: null,
       status: 'error',
-      error: message
+      error: message,
     });
     return false;
   }
@@ -111,7 +111,7 @@ export async function connectFromEncoded(encoded: string): Promise<boolean> {
 export async function fetchActors(): Promise<void> {
   const conn = get(connection);
   if (!conn.connector) return;
-  
+
   try {
     const result = await conn.connector.getActors();
     actorsList.set(result.actors);
@@ -121,17 +121,19 @@ export async function fetchActors(): Promise<void> {
   }
 }
 
-export async function fetchActorDetails(actorId: string): Promise<ActorData | null> {
+export async function fetchActorDetails(
+  actorId: string,
+): Promise<ActorData | null> {
   const conn = get(connection);
   if (!conn.connector) return null;
-  
+
   // Check cache first
   const cached = get(actorCache).get(actorId);
   if (cached) return cached;
-  
+
   try {
     const actor = await conn.connector.getActor(actorId);
-    actorCache.update(cache => {
+    actorCache.update((cache) => {
       cache.set(actorId, actor);
       return cache;
     });
@@ -143,7 +145,7 @@ export async function fetchActorDetails(actorId: string): Promise<ActorData | nu
 }
 
 export function toggleActorSelection(actorId: string): void {
-  selectedActorIds.update(ids => {
+  selectedActorIds.update((ids) => {
     const newIds = new Set(ids);
     if (newIds.has(actorId)) {
       newIds.delete(actorId);
@@ -155,11 +157,11 @@ export function toggleActorSelection(actorId: string): void {
 }
 
 export function selectActor(actorId: string): void {
-  selectedActorIds.update(ids => new Set(ids).add(actorId));
+  selectedActorIds.update((ids) => new Set(ids).add(actorId));
 }
 
 export function deselectActor(actorId: string): void {
-  selectedActorIds.update(ids => {
+  selectedActorIds.update((ids) => {
     const newIds = new Set(ids);
     newIds.delete(actorId);
     return newIds;

@@ -1,146 +1,155 @@
 <script lang="ts">
-  import Nav from '$lib/components/Nav.svelte';
-  import { lang } from '$lib/stores/lang';
+import Nav from '$lib/components/Nav.svelte';
+import { lang } from '$lib/stores/lang';
 
-  const en = {
-    title: 'Features',
-    subtitle: 'Everything you need to bring your character sheets to life.',
-    features: [
-      {
-        icon: '🔒',
-        title: 'Zero Storage',
-        desc: 'Your data stays on your network. Nothing is ever sent to or stored on external servers — complete privacy by design.'
-      },
-      {
-        icon: '📄',
-        title: 'Multi-Format Export',
-        desc: 'Export to PDF (A3, A4, A5, A6) or PNG poker card format. Choose the size that fits your table or print service.'
-      },
-      {
-        icon: '📡',
-        title: 'QR Code Connection',
-        desc: 'Open Foundry, click the Sheet Magnet button, and scan the QR code with your phone. Connected in seconds.'
-      },
-      {
-        icon: '📱',
-        title: 'Mobile-First PWA',
-        desc: 'Designed for phones and tablets from the ground up. Install it as a PWA and use it anywhere, even offline.'
-      },
-      {
-        icon: '🎲',
-        title: 'Any Game System',
-        desc: 'Works with every Foundry VTT game system. Select one or more actors and export them instantly.'
-      },
-      {
-        icon: '🖼️',
-        title: 'Template Engine',
-        desc: 'A declarative layout engine binds actor data to card templates. Fully typed with TypeScript for reliability.'
-      },
-      {
-        icon: '🖨️',
-        title: 'Print Services',
-        desc: 'Order physical prints via Printful — poker cards, stickers, and more. (Coming soon)'
-      },
-      {
-        icon: '👁️',
-        title: 'Live Preview',
-        desc: 'Preview your export in real time with the Konva canvas renderer before downloading or ordering prints.'
-      }
-    ],
-    formats: 'Supported Export Formats',
-    formatsTable: [
-      ['Format', 'Size', 'Use Case'],
-      ['PDF A3', '297×420 mm', 'Poster'],
-      ['PDF A4', '210×297 mm', 'Standard sheet'],
-      ['PDF A5', '148×210 mm', 'Booklet'],
-      ['PDF A6', '105×148 mm', 'Pocket sheet'],
-      ['PNG Card', '63×88 mm', 'Poker card (Printful)']
-    ],
-    roadmap: 'Roadmap',
-    roadmapItems: [
-      { done: true, text: 'Foundry VTT connector' },
-      { done: true, text: 'PDF export (A3–A6)' },
-      { done: true, text: 'PNG export' },
-      { done: true, text: 'Poker card format' },
-      { done: true, text: 'Template engine with bindings' },
-      { done: true, text: 'Konva live preview' },
-      { done: true, text: 'QR code scanner for mobile' },
-      { done: false, text: 'System-specific templates (City of Mist, D&D 5e, …)' },
-      { done: false, text: 'Printful API integration' },
-      { done: false, text: 'More print formats (stickers, pencil wraps, mugs)' }
-    ]
-  };
+const en = {
+  title: 'Features',
+  subtitle: 'Everything you need to bring your character sheets to life.',
+  features: [
+    {
+      icon: '🔒',
+      title: 'Zero Storage',
+      desc: 'Your data stays on your network. Nothing is ever sent to or stored on external servers — complete privacy by design.',
+    },
+    {
+      icon: '📄',
+      title: 'Multi-Format Export',
+      desc: 'Export to PDF (A3, A4, A5, A6) or PNG poker card format. Choose the size that fits your table or print service.',
+    },
+    {
+      icon: '📡',
+      title: 'QR Code Connection',
+      desc: 'Open Foundry, click the Sheet Magnet button, and scan the QR code with your phone. Connected in seconds.',
+    },
+    {
+      icon: '📱',
+      title: 'Mobile-First PWA',
+      desc: 'Designed for phones and tablets from the ground up. Install it as a PWA and use it anywhere, even offline.',
+    },
+    {
+      icon: '🎲',
+      title: 'Any Game System',
+      desc: 'Works with every Foundry VTT game system. Select one or more actors and export them instantly.',
+    },
+    {
+      icon: '🖼️',
+      title: 'Template Engine',
+      desc: 'A declarative layout engine binds actor data to card templates. Fully typed with TypeScript for reliability.',
+    },
+    {
+      icon: '🖨️',
+      title: 'Print Services',
+      desc: 'Order physical prints via Printful — poker cards, stickers, and more. (Coming soon)',
+    },
+    {
+      icon: '👁️',
+      title: 'Live Preview',
+      desc: 'Preview your export in real time with the Konva canvas renderer before downloading or ordering prints.',
+    },
+  ],
+  formats: 'Supported Export Formats',
+  formatsTable: [
+    ['Format', 'Size', 'Use Case'],
+    ['PDF A3', '297×420 mm', 'Poster'],
+    ['PDF A4', '210×297 mm', 'Standard sheet'],
+    ['PDF A5', '148×210 mm', 'Booklet'],
+    ['PDF A6', '105×148 mm', 'Pocket sheet'],
+    ['PNG Card', '63×88 mm', 'Poker card (Printful)'],
+  ],
+  roadmap: 'Roadmap',
+  roadmapItems: [
+    { done: true, text: 'Foundry VTT connector' },
+    { done: true, text: 'PDF export (A3–A6)' },
+    { done: true, text: 'PNG export' },
+    { done: true, text: 'Poker card format' },
+    { done: true, text: 'Template engine with bindings' },
+    { done: true, text: 'Konva live preview' },
+    { done: true, text: 'QR code scanner for mobile' },
+    {
+      done: false,
+      text: 'System-specific templates (City of Mist, D&D 5e, …)',
+    },
+    { done: false, text: 'Printful API integration' },
+    { done: false, text: 'More print formats (stickers, pencil wraps, mugs)' },
+  ],
+};
 
-  const fr = {
-    title: 'Fonctionnalités',
-    subtitle: 'Tout ce qu\'il faut pour donner vie à vos feuilles de personnage.',
-    features: [
-      {
-        icon: '🔒',
-        title: 'Zéro stockage',
-        desc: 'Vos données restent sur votre réseau. Rien n\'est jamais envoyé ni stocké sur des serveurs externes — confidentialité totale.'
-      },
-      {
-        icon: '📄',
-        title: 'Export multi-format',
-        desc: 'Exportez en PDF (A3, A4, A5, A6) ou en PNG format carte de poker. Choisissez la taille adaptée à votre table ou à votre service d\'impression.'
-      },
-      {
-        icon: '📡',
-        title: 'Connexion par QR Code',
-        desc: 'Ouvrez Foundry, cliquez sur le bouton Sheet Magnet et scannez le QR code avec votre téléphone. Connecté en quelques secondes.'
-      },
-      {
-        icon: '📱',
-        title: 'PWA Mobile-first',
-        desc: 'Conçu pour les téléphones et tablettes. Installez-le comme une PWA et utilisez-le n\'importe où, même hors ligne.'
-      },
-      {
-        icon: '🎲',
-        title: 'Tous les systèmes de jeu',
-        desc: 'Compatible avec chaque système de jeu Foundry VTT. Sélectionnez un ou plusieurs acteurs et exportez-les instantanément.'
-      },
-      {
-        icon: '🖼️',
-        title: 'Moteur de templates',
-        desc: 'Un moteur de mise en page déclaratif lie les données des acteurs aux templates de cartes. Entièrement typé en TypeScript.'
-      },
-      {
-        icon: '🖨️',
-        title: 'Services d\'impression',
-        desc: 'Commandez des impressions physiques via Printful — cartes de poker, stickers et plus. (Bientôt disponible)'
-      },
-      {
-        icon: '👁️',
-        title: 'Aperçu en temps réel',
-        desc: 'Visualisez votre export en temps réel avec le rendu canvas Konva avant de télécharger ou de commander.'
-      }
-    ],
-    formats: 'Formats d\'export supportés',
-    formatsTable: [
-      ['Format', 'Taille', 'Usage'],
-      ['PDF A3', '297×420 mm', 'Poster'],
-      ['PDF A4', '210×297 mm', 'Feuille standard'],
-      ['PDF A5', '148×210 mm', 'Livret'],
-      ['PDF A6', '105×148 mm', 'Feuille de poche'],
-      ['PNG Card', '63×88 mm', 'Carte de poker (Printful)']
-    ],
-    roadmap: 'Feuille de route',
-    roadmapItems: [
-      { done: true, text: 'Connecteur Foundry VTT' },
-      { done: true, text: 'Export PDF (A3–A6)' },
-      { done: true, text: 'Export PNG' },
-      { done: true, text: 'Format carte de poker' },
-      { done: true, text: 'Moteur de templates avec liaisons' },
-      { done: true, text: 'Aperçu en direct avec Konva' },
-      { done: true, text: 'Scanner QR code sur mobile' },
-      { done: false, text: 'Templates spécifiques aux systèmes (City of Mist, D&D 5e, …)' },
-      { done: false, text: 'Intégration API Printful' },
-      { done: false, text: 'Plus de formats d\'impression (stickers, porte-mines, mugs)' }
-    ]
-  };
+const fr = {
+  title: 'Fonctionnalités',
+  subtitle: "Tout ce qu'il faut pour donner vie à vos feuilles de personnage.",
+  features: [
+    {
+      icon: '🔒',
+      title: 'Zéro stockage',
+      desc: "Vos données restent sur votre réseau. Rien n'est jamais envoyé ni stocké sur des serveurs externes — confidentialité totale.",
+    },
+    {
+      icon: '📄',
+      title: 'Export multi-format',
+      desc: "Exportez en PDF (A3, A4, A5, A6) ou en PNG format carte de poker. Choisissez la taille adaptée à votre table ou à votre service d'impression.",
+    },
+    {
+      icon: '📡',
+      title: 'Connexion par QR Code',
+      desc: 'Ouvrez Foundry, cliquez sur le bouton Sheet Magnet et scannez le QR code avec votre téléphone. Connecté en quelques secondes.',
+    },
+    {
+      icon: '📱',
+      title: 'PWA Mobile-first',
+      desc: "Conçu pour les téléphones et tablettes. Installez-le comme une PWA et utilisez-le n'importe où, même hors ligne.",
+    },
+    {
+      icon: '🎲',
+      title: 'Tous les systèmes de jeu',
+      desc: 'Compatible avec chaque système de jeu Foundry VTT. Sélectionnez un ou plusieurs acteurs et exportez-les instantanément.',
+    },
+    {
+      icon: '🖼️',
+      title: 'Moteur de templates',
+      desc: 'Un moteur de mise en page déclaratif lie les données des acteurs aux templates de cartes. Entièrement typé en TypeScript.',
+    },
+    {
+      icon: '🖨️',
+      title: "Services d'impression",
+      desc: 'Commandez des impressions physiques via Printful — cartes de poker, stickers et plus. (Bientôt disponible)',
+    },
+    {
+      icon: '👁️',
+      title: 'Aperçu en temps réel',
+      desc: 'Visualisez votre export en temps réel avec le rendu canvas Konva avant de télécharger ou de commander.',
+    },
+  ],
+  formats: "Formats d'export supportés",
+  formatsTable: [
+    ['Format', 'Taille', 'Usage'],
+    ['PDF A3', '297×420 mm', 'Poster'],
+    ['PDF A4', '210×297 mm', 'Feuille standard'],
+    ['PDF A5', '148×210 mm', 'Livret'],
+    ['PDF A6', '105×148 mm', 'Feuille de poche'],
+    ['PNG Card', '63×88 mm', 'Carte de poker (Printful)'],
+  ],
+  roadmap: 'Feuille de route',
+  roadmapItems: [
+    { done: true, text: 'Connecteur Foundry VTT' },
+    { done: true, text: 'Export PDF (A3–A6)' },
+    { done: true, text: 'Export PNG' },
+    { done: true, text: 'Format carte de poker' },
+    { done: true, text: 'Moteur de templates avec liaisons' },
+    { done: true, text: 'Aperçu en direct avec Konva' },
+    { done: true, text: 'Scanner QR code sur mobile' },
+    {
+      done: false,
+      text: 'Templates spécifiques aux systèmes (City of Mist, D&D 5e, …)',
+    },
+    { done: false, text: 'Intégration API Printful' },
+    {
+      done: false,
+      text: "Plus de formats d'impression (stickers, porte-mines, mugs)",
+    },
+  ],
+};
 
-  const t = $derived($lang === 'fr' ? fr : en);
+const t = $derived($lang === 'fr' ? fr : en);
 </script>
 
 <Nav />

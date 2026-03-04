@@ -3,55 +3,59 @@
 :root {
   /* Colors - Parchment & copper semantic palette */
   /* Backgrounds — parchemin & papier */
-  --color-bg: #FAF6F0;
-  --color-bg-secondary: #F2ECE3;
-  --color-bg-card: #EDE6DA;
+  --color-bg: #faf6f0;
+  --color-bg-secondary: #f2ece3;
+  --color-bg-card: #ede6da;
   /* Accent primaire — cuivre magnétique */
-  --color-primary: #B8652A;
-  --color-primary-hover: #8F4E1E;
-  --color-primary-glow: rgba(184,101,42,0.12);
+  --color-primary: #b8652a;
+  --color-primary-hover: #8f4e1e;
+  --color-primary-glow: rgba(184, 101, 42, 0.12);
   /* Accent secondaire — acier / tech */
-  --color-secondary: #4A6B82;
-  --color-secondary-hover: #374F60;
-  --color-secondary-glow: rgba(74,107,130,0.10);
+  --color-secondary: #4a6b82;
+  --color-secondary-hover: #374f60;
+  --color-secondary-glow: rgba(74, 107, 130, 0.1);
   /* Texte — encre */
-  --color-text: #2C2418;
-  --color-text-soft: #5C4F3D;
-  --color-text-muted: #8E8172;
-  --color-text-dim: #B5AA9A;
+  --color-text: #2c2418;
+  --color-text-soft: #5c4f3d;
+  --color-text-muted: #8e8172;
+  --color-text-dim: #b5aa9a;
   /* Bordures */
-  --color-border: #DDD5C8;
-  --color-border-light: #E8E1D6;
+  --color-border: #ddd5c8;
+  --color-border-light: #e8e1d6;
   /* Fonctionnel */
-  --color-success: #5A8A4A;
-  --color-warning: #C49A2C;
-  --color-error: #A84032;
-  
+  --color-success: #5a8a4a;
+  --color-warning: #c49a2c;
+  --color-error: #a84032;
+
   /* Spacing - 4px base */
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
   --space-md: 1rem;
   --space-lg: 1.5rem;
   --space-xl: 2rem;
-  
+
   /* Typography */
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
-  
+  --font-sans:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:
+    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
+
   /* Borders */
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
   --radius-lg: 1rem;
   --radius-full: 9999px;
-  
+
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(44, 36, 24, 0.10);
+  --shadow-sm: 0 1px 2px rgba(44, 36, 24, 0.1);
   --shadow-md: 0 4px 6px rgba(44, 36, 24, 0.14);
   --shadow-lg: 0 10px 15px rgba(44, 36, 24, 0.18);
 }
 
 /* Reset */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -81,14 +85,22 @@ body {
 }
 
 /* Typography */
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   font-weight: 600;
   line-height: 1.2;
 }
 
-h1 { font-size: 1.75rem; }
-h2 { font-size: 1.5rem; }
-h3 { font-size: 1.25rem; }
+h1 {
+  font-size: 1.75rem;
+}
+h2 {
+  font-size: 1.5rem;
+}
+h3 {
+  font-size: 1.25rem;
+}
 
 /* Buttons */
 .btn {
@@ -112,7 +124,8 @@ h3 { font-size: 1.25rem; }
   color: white;
 }
 
-.btn-primary:hover, .btn-primary:active {
+.btn-primary:hover,
+.btn-primary:active {
   background-color: var(--color-primary-hover);
 }
 
@@ -122,7 +135,8 @@ h3 { font-size: 1.25rem; }
   border: 1px solid var(--color-border);
 }
 
-.btn-secondary:hover, .btn-secondary:active {
+.btn-secondary:hover,
+.btn-secondary:active {
   background-color: var(--color-bg-secondary);
 }
 
@@ -145,7 +159,8 @@ h3 { font-size: 1.25rem; }
 }
 
 /* Form elements */
-input, textarea {
+input,
+textarea {
   width: 100%;
   padding: var(--space-sm) var(--space-md);
   font-size: 1rem;
@@ -158,7 +173,8 @@ input, textarea {
   transition: border-color 0.15s ease;
 }
 
-input:focus, textarea:focus {
+input:focus,
+textarea:focus {
   border-color: var(--color-primary);
 }
 
@@ -195,7 +211,8 @@ label {
   transition: background-color 0.15s ease;
 }
 
-.list-item:hover, .list-item:active {
+.list-item:hover,
+.list-item:active {
   background-color: var(--color-bg-card);
 }
 
@@ -226,8 +243,12 @@ label {
   border-radius: var(--radius-full);
 }
 
-.status-success .status-dot { background-color: var(--color-success); }
-.status-error .status-dot { background-color: var(--color-error); }
+.status-success .status-dot {
+  background-color: var(--color-success);
+}
+.status-error .status-dot {
+  background-color: var(--color-error);
+}
 
 /* Page header */
 .page-header {
@@ -288,7 +309,9 @@ label {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Tablet+ breakpoint */
@@ -298,9 +321,11 @@ label {
     margin: 0 auto;
     padding: var(--space-xl);
   }
-  
-  h1 { font-size: 2rem; }
-  
+
+  h1 {
+    font-size: 2rem;
+  }
+
   .btn-block {
     width: auto;
   }
