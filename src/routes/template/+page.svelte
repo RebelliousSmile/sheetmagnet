@@ -1,39 +1,69 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
-  import { isConnected, selectedActorIds } from '$lib/stores/session';
+import { goto } from '$app/navigation';
+import { onMount } from 'svelte';
+import { isConnected, selectedActorIds } from '$lib/stores/session';
 
-  // Template definitions - will be loaded from YAML later
-  const templates = [
-    { id: 'pdf-a4', name: 'PDF A4', description: 'Standard A4 portrait', icon: '📄', format: 'pdf' },
-    { id: 'pdf-a5', name: 'PDF A5', description: 'Compact A5 booklet', icon: '📄', format: 'pdf' },
-    { id: 'pdf-a6', name: 'PDF A6', description: 'Pocket size', icon: '📄', format: 'pdf' },
-    { id: 'pdf-a3', name: 'PDF A3', description: 'Large poster format', icon: '📄', format: 'pdf' },
-    { id: 'png-card', name: 'Poker Card', description: '63×88mm card format', icon: '🃏', format: 'png' },
-  ];
+// Template definitions - will be loaded from YAML later
+const templates = [
+  {
+    id: 'pdf-a4',
+    name: 'PDF A4',
+    description: 'Standard A4 portrait',
+    icon: '📄',
+    format: 'pdf',
+  },
+  {
+    id: 'pdf-a5',
+    name: 'PDF A5',
+    description: 'Compact A5 booklet',
+    icon: '📄',
+    format: 'pdf',
+  },
+  {
+    id: 'pdf-a6',
+    name: 'PDF A6',
+    description: 'Pocket size',
+    icon: '📄',
+    format: 'pdf',
+  },
+  {
+    id: 'pdf-a3',
+    name: 'PDF A3',
+    description: 'Large poster format',
+    icon: '📄',
+    format: 'pdf',
+  },
+  {
+    id: 'png-card',
+    name: 'Poker Card',
+    description: '63×88mm card format',
+    icon: '🃏',
+    format: 'png',
+  },
+];
 
-  let selectedTemplate = $state<string | null>(null);
+let selectedTemplate = $state<string | null>(null);
 
-  onMount(() => {
-    // Redirect if not connected or no actors selected
-    if (!$isConnected || $selectedActorIds.size === 0) {
-      goto('/');
-    }
-  });
-
-  function handleTemplateClick(templateId: string) {
-    selectedTemplate = templateId;
+onMount(() => {
+  // Redirect if not connected or no actors selected
+  if (!$isConnected || $selectedActorIds.size === 0) {
+    goto('/');
   }
+});
 
-  function handleContinue() {
-    if (selectedTemplate) {
-      goto(`/preview?template=${selectedTemplate}`);
-    }
-  }
+function handleTemplateClick(templateId: string) {
+  selectedTemplate = templateId;
+}
 
-  function handleBack() {
-    goto('/select');
+function handleContinue() {
+  if (selectedTemplate) {
+    goto(`/preview?template=${selectedTemplate}`);
   }
+}
+
+function handleBack() {
+  goto('/select');
+}
 </script>
 
 <div class="page-header">

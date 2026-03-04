@@ -3,9 +3,9 @@
  * Renders resolved layouts to PDF using pdf-lib
  */
 
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import type { ResolvedLayout, ResolvedElement, ElementStyle } from '$lib/templates/types';
+import { PDFDocument, type PDFImage, rgb, StandardFonts } from 'pdf-lib';
 import { mmToPt } from '$lib/templates/engine';
+import type { ResolvedElement, ResolvedLayout } from '$lib/templates/types';
 
 /**
  * Convert hex color to RGB values (0-1 range)
@@ -13,11 +13,14 @@ import { mmToPt } from '$lib/templates/engine';
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   if (!result) return { r: 0, g: 0, b: 0 };
-  
+
   return {
+    // biome-ignore lint/style/noNonNullAssertion: regex is validated above with `if (!result) return` — groups 1-3 are always present when exec succeeds
     r: parseInt(result[1]!, 16) / 255,
+    // biome-ignore lint/style/noNonNullAssertion: regex is validated above with `if (!result) return` — groups 1-3 are always present when exec succeeds
     g: parseInt(result[2]!, 16) / 255,
-    b: parseInt(result[3]!, 16) / 255
+    // biome-ignore lint/style/noNonNullAssertion: regex is validated above with `if (!result) return` — groups 1-3 are always present when exec succeeds
+    b: parseInt(result[3]!, 16) / 255,
   };
 }
 
@@ -33,18 +36,24 @@ export class PdfRenderer {
    */
   async generate(): Promise<PDFDocument> {
     const pdfDoc = await PDFDocument.create();
-    
+
     const widthPt = mmToPt(this.layout.width);
     const heightPt = mmToPt(this.layout.height);
-    
+
     const page = pdfDoc.addPage([widthPt, heightPt]);
-    
+
     // Embed fonts
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
     for (const element of this.layout.elements) {
-      await this.renderElement(pdfDoc, page, element, { helvetica, helveticaBold }, heightPt);
+      await this.renderElement(
+        pdfDoc,
+        page,
+        element,
+        { helvetica, helveticaBold },
+        heightPt,
+      );
     }
 
     return pdfDoc;
@@ -57,8 +66,11 @@ export class PdfRenderer {
     pdfDoc: PDFDocument,
     page: ReturnType<PDFDocument['addPage']>,
     el: ResolvedElement,
-    fonts: { helvetica: Awaited<ReturnType<PDFDocument['embedFont']>>; helveticaBold: Awaited<ReturnType<PDFDocument['embedFont']>> },
-    pageHeight: number
+    fonts: {
+      helvetica: Awaited<ReturnType<PDFDocument['embedFont']>>;
+      helveticaBold: Awaited<ReturnType<PDFDocument['embedFont']>>;
+    },
+    pageHeight: number,
   ): Promise<void> {
     // PDF coordinates start from bottom-left, so flip Y
     const x = mmToPt(el.x);
@@ -71,7 +83,16 @@ export class PdfRenderer {
         this.renderText(page, el, x, y, width, fonts);
         break;
       case 'image':
-        await this.renderImage(pdfDoc, page, el, x, y, width, height, pageHeight);
+        await this.renderImage(
+          pdfDoc,
+          page,
+          el,
+          x,
+          y,
+          width,
+          height,
+          pageHeight,
+        );
         break;
       case 'rect':
         this.renderRect(page, el, x, y, width, height);
@@ -88,14 +109,18 @@ export class PdfRenderer {
     x: number,
     y: number,
     width: number | undefined,
-    fonts: { helvetica: Awaited<ReturnType<PDFDocument['embedFont']>>; helveticaBold: Awaited<ReturnType<PDFDocument['embedFont']>> }
+    fonts: {
+      helvetica: Awaited<ReturnType<PDFDocument['embedFont']>>;
+      helveticaBold: Awaited<ReturnType<PDFDocument['embedFont']>>;
+    },
   ): void {
     const style = el.style;
     const text = el.content || '';
     if (!text) return;
 
     const fontSize = style.fontSize || 10;
-    const font = style.fontWeight === 'bold' ? fonts.helveticaBold : fonts.helvetica;
+    const font =
+      style.fontWeight === 'bold' ? fonts.helveticaBold : fonts.helvetica;
     const color = hexToRgb(style.color || '#000000');
 
     // Adjust Y for text baseline (PDF draws from baseline)
@@ -117,7 +142,7 @@ export class PdfRenderer {
       size: fontSize,
       font,
       color: rgb(color.r, color.g, color.b),
-      opacity: style.opacity ?? 1
+      opacity: style.opacity ?? 1,
     });
   }
 
@@ -129,7 +154,7 @@ export class PdfRenderer {
     y: number,
     width: number | undefined,
     height: number | undefined,
-    pageHeight: number
+    _pageHeight: number,
   ): Promise<void> {
     if (!el.imageData || !width || !height) return;
 
@@ -140,8 +165,11 @@ export class PdfRenderer {
       const uint8Array = new Uint8Array(arrayBuffer);
 
       // Detect image type and embed
-      let image;
-      if (el.imageData.includes('.png') || el.imageData.startsWith('data:image/png')) {
+      let image: PDFImage;
+      if (
+        el.imageData.includes('.png') ||
+        el.imageData.startsWith('data:image/png')
+      ) {
         image = await pdfDoc.embedPng(uint8Array);
       } else {
         image = await pdfDoc.embedJpg(uint8Array);
@@ -155,7 +183,7 @@ export class PdfRenderer {
         y: imageY,
         width,
         height,
-        opacity: el.style.opacity ?? 1
+        opacity: el.style.opacity ?? 1,
       });
     } catch (error) {
       // Draw placeholder on error
@@ -165,7 +193,7 @@ export class PdfRenderer {
         y: y - (height || 0),
         width: width || 0,
         height: height || 0,
-        color: rgb(0.8, 0.8, 0.8)
+        color: rgb(0.8, 0.8, 0.8),
       });
     }
   }
@@ -176,10 +204,10 @@ export class PdfRenderer {
     x: number,
     y: number,
     width: number | undefined,
-    height: number | undefined
+    height: number | undefined,
   ): void {
     const style = el.style;
-    
+
     // PDF Y is from bottom
     const rectY = y - (height || 0);
 
@@ -188,7 +216,7 @@ export class PdfRenderer {
       y: rectY,
       width: width || 0,
       height: height || 0,
-      opacity: style.opacity ?? 1
+      opacity: style.opacity ?? 1,
     };
 
     if (style.fill && style.fill !== 'transparent') {
@@ -210,7 +238,7 @@ export class PdfRenderer {
     el: ResolvedElement,
     x: number,
     y: number,
-    pageHeight: number
+    pageHeight: number,
   ): void {
     const style = el.style;
     const x2 = el.x2 ? mmToPt(el.x2) : x;
@@ -223,7 +251,7 @@ export class PdfRenderer {
       end: { x: x2, y: y2 },
       thickness: style.strokeWidth ? mmToPt(style.strokeWidth) : 1,
       color: rgb(strokeColor.r, strokeColor.g, strokeColor.b),
-      opacity: style.opacity ?? 1
+      opacity: style.opacity ?? 1,
     });
   }
 

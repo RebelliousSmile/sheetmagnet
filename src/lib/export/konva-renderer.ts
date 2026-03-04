@@ -4,8 +4,8 @@
  */
 
 import Konva from 'konva';
-import type { ResolvedLayout, ResolvedElement, ElementStyle } from '$lib/templates/types';
 import { mmToPx } from '$lib/templates/engine';
+import type { ResolvedElement, ResolvedLayout } from '$lib/templates/types';
 
 const DEFAULT_DPI = 96;
 const EXPORT_DPI = 300;
@@ -31,7 +31,7 @@ export class KonvaRenderer {
     this.stage = new Konva.Stage({
       container,
       width,
-      height
+      height,
     });
 
     this.layer = new Konva.Layer();
@@ -76,10 +76,10 @@ export class KonvaRenderer {
     x: number,
     y: number,
     width?: number,
-    height?: number
+    height?: number,
   ): void {
     const style = el.style;
-    
+
     const text = new Konva.Text({
       x,
       y,
@@ -93,10 +93,10 @@ export class KonvaRenderer {
       align: style.align || 'left',
       verticalAlign: style.verticalAlign || 'top',
       lineHeight: style.lineHeight || 1.2,
-      opacity: style.opacity ?? 1
+      opacity: style.opacity ?? 1,
     });
 
-    this.layer!.add(text);
+    this.layer?.add(text);
   }
 
   private async renderImage(
@@ -104,14 +104,14 @@ export class KonvaRenderer {
     x: number,
     y: number,
     width?: number,
-    height?: number
+    height?: number,
   ): Promise<void> {
     if (!el.imageData || !width || !height) return;
 
     return new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
-      
+
       img.onload = () => {
         const konvaImage = new Konva.Image({
           x,
@@ -119,14 +119,14 @@ export class KonvaRenderer {
           image: img,
           width,
           height,
-          opacity: el.style.opacity ?? 1
+          opacity: el.style.opacity ?? 1,
         });
 
         // Apply corner radius if specified
         // Note: Konva doesn't have built-in radius for images,
         // would need clipFunc for that - simplified for MVP
-        
-        this.layer!.add(konvaImage);
+
+        this.layer?.add(konvaImage);
         resolve();
       };
 
@@ -137,9 +137,9 @@ export class KonvaRenderer {
           y,
           width,
           height,
-          fill: '#cccccc'
+          fill: '#cccccc',
         });
-        this.layer!.add(placeholder);
+        this.layer?.add(placeholder);
         resolve();
       };
 
@@ -152,10 +152,10 @@ export class KonvaRenderer {
     x: number,
     y: number,
     width?: number,
-    height?: number
+    height?: number,
   ): void {
     const style = el.style;
-    
+
     const rect = new Konva.Rect({
       x,
       y,
@@ -165,10 +165,10 @@ export class KonvaRenderer {
       stroke: style.stroke === 'transparent' ? undefined : style.stroke,
       strokeWidth: style.strokeWidth ? mmToPx(style.strokeWidth, this.dpi) : 0,
       cornerRadius: 0, // TODO: support radius
-      opacity: style.opacity ?? 1
+      opacity: style.opacity ?? 1,
     });
 
-    this.layer!.add(rect);
+    this.layer?.add(rect);
   }
 
   private renderLine(el: ResolvedElement, x: number, y: number): void {
@@ -180,10 +180,10 @@ export class KonvaRenderer {
       points: [x, y, x2, y2],
       stroke: style.stroke || '#000000',
       strokeWidth: style.strokeWidth ? mmToPx(style.strokeWidth, this.dpi) : 1,
-      opacity: style.opacity ?? 1
+      opacity: style.opacity ?? 1,
     });
 
-    this.layer!.add(line);
+    this.layer?.add(line);
   }
 
   /**
@@ -196,7 +196,7 @@ export class KonvaRenderer {
 
     return this.stage.toDataURL({
       pixelRatio,
-      mimeType: 'image/png'
+      mimeType: 'image/png',
     });
   }
 
@@ -210,22 +210,11 @@ export class KonvaRenderer {
   }
 
   /**
-   * Destroy the stage
-   */
-  destroy(): void {
-    if (this.stage) {
-      this.stage.destroy();
-      this.stage = null;
-      this.layer = null;
-    }
-  }
-
-  /**
    * Static method to render and export without UI
    */
   static async toPNGBlob(
     layout: ResolvedLayout,
-    pixelRatio = 2
+    pixelRatio = 2,
   ): Promise<Blob> {
     // Create offscreen container
     const container = document.createElement('div');
@@ -241,6 +230,17 @@ export class KonvaRenderer {
       return blob;
     } finally {
       document.body.removeChild(container);
+    }
+  }
+
+  /**
+   * Destroy the stage
+   */
+  destroy(): void {
+    if (this.stage) {
+      this.stage.destroy();
+      this.stage = null;
+      this.layer = null;
     }
   }
 }

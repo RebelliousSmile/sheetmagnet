@@ -1,25 +1,36 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { lang } from '$lib/stores/lang';
+import { onMount } from 'svelte';
+import { lang } from '$lib/stores/lang';
 
-  let menuOpen = $state(false);
+let menuOpen = $state(false);
 
-  onMount(() => {
-    lang.init();
-  });
+onMount(() => {
+  lang.init();
+});
 
-  function toggleMenu() {
-    menuOpen = !menuOpen;
-  }
+function toggleMenu() {
+  menuOpen = !menuOpen;
+}
 
-  function closeMenu() {
-    menuOpen = false;
-  }
+function closeMenu() {
+  menuOpen = false;
+}
 
-  const t = $derived($lang === 'fr'
-    ? { features: 'Fonctionnalités', faq: 'FAQ', contact: 'Contact', start: 'Commencer' }
-    : { features: 'Features', faq: 'FAQ', contact: 'Contact', start: 'Get Started' }
-  );
+const t = $derived(
+  $lang === 'fr'
+    ? {
+        features: 'Fonctionnalités',
+        faq: 'FAQ',
+        contact: 'Contact',
+        start: 'Commencer',
+      }
+    : {
+        features: 'Features',
+        faq: 'FAQ',
+        contact: 'Contact',
+        start: 'Get Started',
+      },
+);
 </script>
 
 <nav class="nav">

@@ -1,47 +1,47 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
-  import { 
-    connection,
-    isConnected,
-    actorsList,
-    selectedActorIds,
-    fetchActors,
-    toggleActorSelection,
-    disconnect
-  } from '$lib/stores/session';
+import { goto } from '$app/navigation';
+import { onMount } from 'svelte';
+import {
+  connection,
+  isConnected,
+  actorsList,
+  selectedActorIds,
+  fetchActors,
+  toggleActorSelection,
+  disconnect,
+} from '$lib/stores/session';
 
-  let isLoading = $state(true);
+let isLoading = $state(true);
 
-  onMount(async () => {
-    // Redirect if not connected
-    if (!$isConnected) {
-      goto('/');
-      return;
-    }
-    
-    await fetchActors();
-    isLoading = false;
-  });
-
-  function handleActorClick(actorId: string) {
-    toggleActorSelection(actorId);
-  }
-
-  function handleContinue() {
-    if ($selectedActorIds.size > 0) {
-      goto('/template');
-    }
-  }
-
-  function handleDisconnect() {
-    disconnect();
+onMount(async () => {
+  // Redirect if not connected
+  if (!$isConnected) {
     goto('/');
+    return;
   }
 
-  function isSelected(actorId: string): boolean {
-    return $selectedActorIds.has(actorId);
+  await fetchActors();
+  isLoading = false;
+});
+
+function handleActorClick(actorId: string) {
+  toggleActorSelection(actorId);
+}
+
+function handleContinue() {
+  if ($selectedActorIds.size > 0) {
+    goto('/template');
   }
+}
+
+function handleDisconnect() {
+  disconnect();
+  goto('/');
+}
+
+function isSelected(actorId: string): boolean {
+  return $selectedActorIds.has(actorId);
+}
 </script>
 
 <div class="page-header">

@@ -3,12 +3,12 @@
  * Parses templates and resolves bindings with actor data
  */
 
-import type { 
-  TemplateDefinition, 
-  RenderElement, 
-  ResolvedLayout, 
+import type {
+  ElementStyle,
+  RenderElement,
   ResolvedElement,
-  ElementStyle
+  ResolvedLayout,
+  TemplateDefinition,
 } from './types';
 
 const DEFAULT_STYLE: ElementStyle = {
@@ -23,7 +23,7 @@ const DEFAULT_STYLE: ElementStyle = {
   align: 'left',
   verticalAlign: 'top',
   lineHeight: 1.2,
-  opacity: 1
+  opacity: 1,
 };
 
 // Unit conversions
@@ -44,12 +44,12 @@ export function mmToPx(mm: number, dpi = 96): number {
 function getByPath(path: string, data: Record<string, unknown>): unknown {
   const parts = path.split('.');
   let value: unknown = data;
-  
+
   for (const part of parts) {
     if (value == null || typeof value !== 'object') return undefined;
     value = (value as Record<string, unknown>)[part];
   }
-  
+
   return value;
 }
 
@@ -66,7 +66,10 @@ function interpolate(template: string, data: Record<string, unknown>): string {
 /**
  * Check condition binding
  */
-function checkCondition(condition: string | undefined, data: Record<string, unknown>): boolean {
+function checkCondition(
+  condition: string | undefined,
+  data: Record<string, unknown>,
+): boolean {
   if (!condition) return true;
   const path = condition.replace(/^\{\{|\}\}$/g, '').trim();
   return Boolean(getByPath(path, data));
@@ -75,7 +78,10 @@ function checkCondition(condition: string | undefined, data: Record<string, unkn
 /**
  * Merge styles
  */
-function mergeStyles(base?: ElementStyle, named?: Record<string, ElementStyle>): ElementStyle {
+function mergeStyles(
+  base?: ElementStyle,
+  _named?: Record<string, ElementStyle>,
+): ElementStyle {
   return { ...DEFAULT_STYLE, ...base };
 }
 
@@ -85,7 +91,7 @@ function mergeStyles(base?: ElementStyle, named?: Record<string, ElementStyle>):
 function resolveElement(
   el: RenderElement,
   data: Record<string, unknown>,
-  namedStyles?: Record<string, ElementStyle>
+  namedStyles?: Record<string, ElementStyle>,
 ): ResolvedElement[] {
   if (!checkCondition(el.condition, data)) return [];
 
@@ -93,46 +99,54 @@ function resolveElement(
 
   switch (el.type) {
     case 'text':
-      return [{
-        type: 'text',
-        x: el.x,
-        y: el.y,
-        width: el.width,
-        height: el.height,
-        style,
-        content: interpolate(el.content, data)
-      }];
+      return [
+        {
+          type: 'text',
+          x: el.x,
+          y: el.y,
+          width: el.width,
+          height: el.height,
+          style,
+          content: interpolate(el.content, data),
+        },
+      ];
 
     case 'image':
-      return [{
-        type: 'image',
-        x: el.x,
-        y: el.y,
-        width: el.width,
-        height: el.height,
-        style,
-        imageData: interpolate(el.src, data)
-      }];
+      return [
+        {
+          type: 'image',
+          x: el.x,
+          y: el.y,
+          width: el.width,
+          height: el.height,
+          style,
+          imageData: interpolate(el.src, data),
+        },
+      ];
 
     case 'rect':
-      return [{
-        type: 'rect',
-        x: el.x,
-        y: el.y,
-        width: el.width,
-        height: el.height,
-        style
-      }];
+      return [
+        {
+          type: 'rect',
+          x: el.x,
+          y: el.y,
+          width: el.width,
+          height: el.height,
+          style,
+        },
+      ];
 
     case 'line':
-      return [{
-        type: 'line',
-        x: el.x,
-        y: el.y,
-        x2: el.x2,
-        y2: el.y2,
-        style
-      }];
+      return [
+        {
+          type: 'line',
+          x: el.x,
+          y: el.y,
+          x2: el.x2,
+          y2: el.y2,
+          style,
+        },
+      ];
 
     case 'group': {
       const results: ResolvedElement[] = [];
@@ -153,13 +167,18 @@ function resolveElement(
 
       const results: ResolvedElement[] = [];
       const max = el.maxItems ?? items.length;
-      let offsetX = 0, offsetY = 0;
+      let offsetX = 0,
+        offsetY = 0;
 
       for (let i = 0; i < Math.min(items.length, max); i++) {
         const itemData = { ...data, item: items[i], index: i };
-        
+
         for (const templateEl of el.template) {
-          for (const resolved of resolveElement(templateEl, itemData, namedStyles)) {
+          for (const resolved of resolveElement(
+            templateEl,
+            itemData,
+            namedStyles,
+          )) {
             resolved.x += el.x + offsetX;
             resolved.y += el.y + offsetY;
             results.push(resolved);
@@ -185,17 +204,17 @@ function resolveElement(
  */
 export function resolve(
   template: TemplateDefinition,
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
 ): ResolvedLayout {
   const elements: ResolvedElement[] = [];
-  
+
   for (const el of template.layout) {
     elements.push(...resolveElement(el, data, template.styles));
   }
-  
+
   return {
     width: template.meta.width,
     height: template.meta.height,
-    elements
+    elements,
   };
 }

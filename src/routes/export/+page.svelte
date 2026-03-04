@@ -1,75 +1,71 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { page } from '$app/stores';
-  import { onMount } from 'svelte';
-  import { 
-    isConnected, 
-    selectedActors,
-    disconnect
-  } from '$lib/stores/session';
-  import { getTemplate } from '$lib/templates';
-  import { exportAndDownload } from '$lib/export';
+import { goto } from '$app/navigation';
+import { page } from '$app/stores';
+import { onMount } from 'svelte';
+import { isConnected, selectedActors, disconnect } from '$lib/stores/session';
+import { getTemplate } from '$lib/templates';
+import { exportAndDownload } from '$lib/export';
 
-  let templateId = $derived($page.url.searchParams.get('template') || 'pdf-a4');
-  let isExporting = $state(false);
-  let exportComplete = $state(false);
-  let exportError = $state<string | null>(null);
+let templateId = $derived($page.url.searchParams.get('template') || 'pdf-a4');
+let isExporting = $state(false);
+let exportComplete = $state(false);
+let exportError = $state<string | null>(null);
 
-  onMount(() => {
-    if (!$isConnected || $selectedActors.length === 0) {
-      goto('/');
-    }
-  });
-
-  async function handleDownload(format: 'pdf' | 'png') {
-    const template = getTemplate(templateId);
-    if (!template) {
-      exportError = 'Template not found';
-      return;
-    }
-
-    isExporting = true;
-    exportError = null;
-
-    try {
-      // Export each selected actor
-      for (const actor of $selectedActors) {
-        await exportAndDownload(actor, {
-          templateId,
-          format
-        });
-      }
-      
-      exportComplete = true;
-    } catch (e) {
-      console.error('Export failed:', e);
-      exportError = e instanceof Error ? e.message : 'Export failed';
-    } finally {
-      isExporting = false;
-    }
-  }
-
-  function handlePrint() {
-    // TODO: Integrate Printful API
-    alert('Print integration coming soon!');
-  }
-
-  function handleNewExport() {
-    exportComplete = false;
-    exportError = null;
-    goto('/select');
-  }
-
-  function handleDisconnect() {
-    disconnect();
+onMount(() => {
+  if (!$isConnected || $selectedActors.length === 0) {
     goto('/');
   }
+});
 
-  // Determine available formats from template
-  let availableFormats = $derived(() => {
-    const template = getTemplate(templateId);
-    return template?.meta.exports || ['pdf', 'png'];
-  });
+async function handleDownload(format: 'pdf' | 'png') {
+  const template = getTemplate(templateId);
+  if (!template) {
+    exportError = 'Template not found';
+    return;
+  }
+
+  isExporting = true;
+  exportError = null;
+
+  try {
+    // Export each selected actor
+    for (const actor of $selectedActors) {
+      await exportAndDownload(actor, {
+        templateId,
+        format,
+      });
+    }
+
+    exportComplete = true;
+  } catch (e) {
+    console.error('Export failed:', e);
+    exportError = e instanceof Error ? e.message : 'Export failed';
+  } finally {
+    isExporting = false;
+  }
+}
+
+function handlePrint() {
+  // TODO: Integrate Printful API
+  alert('Print integration coming soon!');
+}
+
+function handleNewExport() {
+  exportComplete = false;
+  exportError = null;
+  goto('/select');
+}
+
+function handleDisconnect() {
+  disconnect();
+  goto('/');
+}
+
+// Determine available formats from template
+let availableFormats = $derived(() => {
+  const template = getTemplate(templateId);
+  return template?.meta.exports || ['pdf', 'png'];
+});
 </script>
 
 <div class="page-header">

@@ -6,8 +6,8 @@ export interface TemplateMeta {
   id: string;
   name: string;
   description?: string;
-  width: number;   // mm
-  height: number;  // mm
+  width: number; // mm
+  height: number; // mm
   exports: ('pdf' | 'png')[];
   printful?: string | null;
 }
@@ -75,11 +75,11 @@ export interface RepeatElement extends BaseElement {
   template: RenderElement[];
 }
 
-export type RenderElement = 
-  | TextElement 
-  | ImageElement 
-  | RectElement 
-  | LineElement 
+export type RenderElement =
+  | TextElement
+  | ImageElement
+  | RectElement
+  | LineElement
   | GroupElement
   | RepeatElement;
 
