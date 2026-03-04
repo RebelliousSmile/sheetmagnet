@@ -96,7 +96,7 @@ export class KonvaRenderer {
       opacity: style.opacity ?? 1,
     });
 
-    this.layer?.add(text);
+    this.layer!.add(text);
   }
 
   private async renderImage(
@@ -106,7 +106,8 @@ export class KonvaRenderer {
     width?: number,
     height?: number,
   ): Promise<void> {
-    if (!el.imageData || !width || !height) return;
+    const { imageData } = el;
+    if (!imageData || !width || !height) return;
 
     return new Promise((resolve) => {
       const img = new Image();
@@ -143,7 +144,7 @@ export class KonvaRenderer {
         resolve();
       };
 
-      img.src = el.imageData ?? '';
+      img.src = imageData;
     });
   }
 
@@ -168,7 +169,7 @@ export class KonvaRenderer {
       opacity: style.opacity ?? 1,
     });
 
-    this.layer?.add(rect);
+    this.layer!.add(rect);
   }
 
   private renderLine(el: ResolvedElement, x: number, y: number): void {
@@ -183,7 +184,7 @@ export class KonvaRenderer {
       opacity: style.opacity ?? 1,
     });
 
-    this.layer?.add(line);
+    this.layer!.add(line);
   }
 
   /**

@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && biome check src/ && vitest run --coverage",
+    "check:fast": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && biome check src/ && vitest run",
+    "check": "pnpm check:fast && vitest run --coverage",
     "prepare": "husky"
   },
   "devDependencies": {
