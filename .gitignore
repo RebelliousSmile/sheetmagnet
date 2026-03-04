@@ -7,3 +7,20 @@ dist/
 !.env.example
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+AGENTS.md
+CLAUDE.md
+CONTRIBUTING.md
+
+# <AIDD>
+.mcp.json
+aidd*
+aidd/
+aidd_docs/templates/custom/
+docs/
+worktrees/
+.aidd/
+.vscode/
+.claude/
+.github/
+# </AIDD>
