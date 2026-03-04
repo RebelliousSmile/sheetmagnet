@@ -1,0 +1,1 @@
+C:/Users/fxgui/Documents/Projets/sheetmagnet/aidd/prompts/templates/code_review.md

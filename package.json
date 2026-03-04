@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && biome check src/ && vitest run --coverage"
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && biome check src/ && vitest run --coverage",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.5",
@@ -17,6 +18,7 @@
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@vitest/coverage-v8": "^4.0.18",
+    "husky": "^9.1.7",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "typescript": "^5.0.0",
