@@ -143,7 +143,7 @@ export class KonvaRenderer {
         resolve();
       };
 
-      img.src = el.imageData;
+      img.src = el.imageData ?? '';
     });
   }
 

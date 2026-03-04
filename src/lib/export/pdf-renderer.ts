@@ -15,9 +15,9 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   if (!result) return { r: 0, g: 0, b: 0 };
   
   return {
-    r: parseInt(result[1], 16) / 255,
-    g: parseInt(result[2], 16) / 255,
-    b: parseInt(result[3], 16) / 255
+    r: parseInt(result[1]!, 16) / 255,
+    g: parseInt(result[2]!, 16) / 255,
+    b: parseInt(result[3]!, 16) / 255
   };
 }
 
@@ -240,7 +240,7 @@ export class PdfRenderer {
    */
   async toBlob(): Promise<Blob> {
     const bytes = await this.toBytes();
-    return new Blob([bytes], { type: 'application/pdf' });
+    return new Blob([bytes.buffer as ArrayBuffer], { type: 'application/pdf' });
   }
 
   /**

@@ -89,7 +89,7 @@
           class="avatar" 
           src={actor.img || '/placeholder-avatar.png'} 
           alt={actor.name}
-          onerror={(e) => (e.currentTarget.src = '/placeholder-avatar.png')}
+          onerror={(e) => ((e.currentTarget as HTMLImageElement).src = '/placeholder-avatar.png')}
         />
         <div style="flex: 1; min-width: 0;">
           <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
