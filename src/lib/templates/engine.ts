@@ -76,13 +76,15 @@ function checkCondition(
 }
 
 /**
- * Merge styles
+ * Merge styles: default <- named style <- inline style
  */
 function mergeStyles(
+  styleName?: string,
   base?: ElementStyle,
-  _named?: Record<string, ElementStyle>,
+  named?: Record<string, ElementStyle>,
 ): ElementStyle {
-  return { ...DEFAULT_STYLE, ...base };
+  const namedStyle = styleName && named ? named[styleName] : undefined;
+  return { ...DEFAULT_STYLE, ...namedStyle, ...base };
 }
 
 /**
@@ -95,7 +97,7 @@ function resolveElement(
 ): ResolvedElement[] {
   if (!checkCondition(el.condition, data)) return [];
 
-  const style = mergeStyles(el.style, namedStyles);
+  const style = mergeStyles(el.styleName, el.style, namedStyles);
 
   switch (el.type) {
     case 'text':

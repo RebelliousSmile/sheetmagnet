@@ -34,6 +34,7 @@ export interface BaseElement {
   width?: number;
   height?: number;
   style?: ElementStyle;
+  styleName?: string;
   condition?: string;
 }
 

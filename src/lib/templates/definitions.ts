@@ -92,37 +92,276 @@ export const TEMPLATE_A4: TemplateDefinition = {
       content: '{{actor._meta.systemId}} v{{actor._meta.systemVersion}}',
       style: { fontSize: 7, color: '#666666', align: 'right' },
     },
-    // Main content area - Abilities section
+    // Ability scores — row of 6
     {
       type: 'text',
       x: 10,
-      y: 60,
+      y: 58,
       content: 'ABILITIES',
-      style: { fontSize: 10, fontWeight: 'bold', color: '#1a1a2e' },
+      styleName: 'sectionTitle',
     },
     {
       type: 'line',
       x: 10,
-      y: 68,
+      y: 65,
       x2: 200,
-      y2: 68,
+      y2: 65,
       style: { stroke: '#dddddd', strokeWidth: 0.3 },
+    },
+    // STR
+    {
+      type: 'group',
+      x: 10,
+      y: 70,
+      elements: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'STR',
+          styleName: 'label',
+        },
+        {
+          type: 'text',
+          x: 0,
+          y: 4,
+          content: '{{actor.system.abilities.str.value}}',
+          styleName: 'value',
+        },
+      ],
+    },
+    // DEX
+    {
+      type: 'group',
+      x: 42,
+      y: 70,
+      elements: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'DEX',
+          styleName: 'label',
+        },
+        {
+          type: 'text',
+          x: 0,
+          y: 4,
+          content: '{{actor.system.abilities.dex.value}}',
+          styleName: 'value',
+        },
+      ],
+    },
+    // CON
+    {
+      type: 'group',
+      x: 74,
+      y: 70,
+      elements: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'CON',
+          styleName: 'label',
+        },
+        {
+          type: 'text',
+          x: 0,
+          y: 4,
+          content: '{{actor.system.abilities.con.value}}',
+          styleName: 'value',
+        },
+      ],
+    },
+    // INT
+    {
+      type: 'group',
+      x: 106,
+      y: 70,
+      elements: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'INT',
+          styleName: 'label',
+        },
+        {
+          type: 'text',
+          x: 0,
+          y: 4,
+          content: '{{actor.system.abilities.int.value}}',
+          styleName: 'value',
+        },
+      ],
+    },
+    // WIS
+    {
+      type: 'group',
+      x: 138,
+      y: 70,
+      elements: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'WIS',
+          styleName: 'label',
+        },
+        {
+          type: 'text',
+          x: 0,
+          y: 4,
+          content: '{{actor.system.abilities.wis.value}}',
+          styleName: 'value',
+        },
+      ],
+    },
+    // CHA
+    {
+      type: 'group',
+      x: 170,
+      y: 70,
+      elements: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'CHA',
+          styleName: 'label',
+        },
+        {
+          type: 'text',
+          x: 0,
+          y: 4,
+          content: '{{actor.system.abilities.cha.value}}',
+          styleName: 'value',
+        },
+      ],
+    },
+    // HP / AC row
+    {
+      type: 'group',
+      x: 10,
+      y: 90,
+      elements: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'HP',
+          styleName: 'label',
+        },
+        {
+          type: 'text',
+          x: 0,
+          y: 4,
+          content:
+            '{{actor.system.attributes.hp.value}} / {{actor.system.attributes.hp.max}}',
+          styleName: 'value',
+        },
+      ],
+    },
+    {
+      type: 'group',
+      x: 60,
+      y: 90,
+      elements: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'AC',
+          styleName: 'label',
+        },
+        {
+          type: 'text',
+          x: 0,
+          y: 4,
+          content: '{{actor.system.attributes.ac.flat}}',
+          styleName: 'value',
+        },
+      ],
+    },
+    {
+      type: 'group',
+      x: 100,
+      y: 90,
+      elements: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'SPEED',
+          styleName: 'label',
+        },
+        {
+          type: 'text',
+          x: 0,
+          y: 4,
+          content: '{{actor.system.attributes.movement.walk}} ft',
+          styleName: 'value',
+        },
+      ],
+    },
+    {
+      type: 'group',
+      x: 150,
+      y: 90,
+      elements: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'LEVEL',
+          styleName: 'label',
+        },
+        {
+          type: 'text',
+          x: 0,
+          y: 4,
+          content: '{{actor.system.details.level}}',
+          styleName: 'value',
+        },
+      ],
     },
     // Items section
     {
       type: 'text',
       x: 10,
-      y: 140,
+      y: 110,
       content: 'INVENTORY',
-      style: { fontSize: 10, fontWeight: 'bold', color: '#1a1a2e' },
+      styleName: 'sectionTitle',
     },
     {
       type: 'line',
       x: 10,
-      y: 148,
+      y: 117,
       x2: 200,
-      y2: 148,
+      y2: 117,
       style: { stroke: '#dddddd', strokeWidth: 0.3 },
+    },
+    // Repeat items
+    {
+      type: 'repeat',
+      x: 10,
+      y: 122,
+      bind: '{{actor.items}}',
+      direction: 'vertical',
+      gap: 1,
+      maxItems: 20,
+      template: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          width: 190,
+          height: 5,
+          content: '{{item.name}}',
+          style: { fontSize: 8, color: '#333333' },
+        },
+      ],
     },
     // Footer
     {
