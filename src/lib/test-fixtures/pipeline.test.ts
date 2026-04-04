@@ -207,11 +207,97 @@ describe('City of Mist — A4 template', () => {
     expect(strValueElements.length).toBeGreaterThan(0);
   });
 
-  it('resolves items (moves) in repeat section', () => {
-    const investigateEl = layout.elements.find(
-      (e) => e.type === 'text' && e.content === 'Investigate',
+  it('resolves embedded items (themes, tags, statuses) in repeat section', () => {
+    // In real City of Mist, items[] contains themes, tags, statuses, clues
+    // The generic A4 template repeats actor.items showing item.name
+    const themeEl = layout.elements.find(
+      (e) => e.type === 'text' && e.content === 'Eye of Odin',
     );
-    expect(investigateEl).toBeDefined();
+    expect(themeEl).toBeDefined();
+  });
+
+  it('resolves tag items in repeat section', () => {
+    const tagEl = layout.elements.find(
+      (e) => e.type === 'text' && e.content === 'Visions of the future',
+    );
+    expect(tagEl).toBeDefined();
+  });
+
+  it('repeat maxItems=20 truncates items beyond 20', () => {
+    // City of Mist fixture has 24 items (themes+tags+statuses+clues)
+    // Only first 20 appear in the generic A4 template
+    const allItemNames = CITY_OF_MIST_CHARACTER.items.map(
+      (i) => (i as Record<string, unknown>).name,
+    );
+    const renderedNames = layout.elements
+      .filter((e) => e.type === 'text' && allItemNames.includes(e.content))
+      .map((e) => e.content);
+    expect(renderedNames.length).toBe(20);
+  });
+});
+
+describe('City of Mist — fixture structure validation', () => {
+  it('has themes as embedded items', () => {
+    const themes = CITY_OF_MIST_CHARACTER.items.filter(
+      (i) => (i as Record<string, unknown>).type === 'theme',
+    );
+    expect(themes).toHaveLength(4);
+  });
+
+  it('has power tags as embedded items', () => {
+    const tags = CITY_OF_MIST_CHARACTER.items.filter(
+      (i) =>
+        (i as Record<string, unknown>).type === 'tag' &&
+        (i as Record<string, Record<string, unknown>>).system?.subtype ===
+          'power',
+    );
+    expect(tags.length).toBeGreaterThanOrEqual(8);
+  });
+
+  it('has weakness tags as embedded items', () => {
+    const tags = CITY_OF_MIST_CHARACTER.items.filter(
+      (i) =>
+        (i as Record<string, unknown>).type === 'tag' &&
+        (i as Record<string, Record<string, unknown>>).system?.subtype ===
+          'weakness',
+    );
+    expect(tags.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('has statuses as embedded items', () => {
+    const statuses = CITY_OF_MIST_CHARACTER.items.filter(
+      (i) => (i as Record<string, unknown>).type === 'status',
+    );
+    expect(statuses).toHaveLength(2);
+  });
+
+  it('has clues as embedded items', () => {
+    const clues = CITY_OF_MIST_CHARACTER.items.filter(
+      (i) => (i as Record<string, unknown>).type === 'clue',
+    );
+    expect(clues).toHaveLength(2);
+  });
+
+  it('actor.system is sparse (no themes/tags/statuses)', () => {
+    const sys = CITY_OF_MIST_CHARACTER.system as Record<string, unknown>;
+    expect(sys.themes).toBeUndefined();
+    expect(sys.storyTags).toBeUndefined();
+    expect(sys.statuses).toBeUndefined();
+  });
+
+  it('actor.system has mythos/logos strings', () => {
+    const sys = CITY_OF_MIST_CHARACTER.system as Record<string, unknown>;
+    expect(sys.mythos).toBe('Odin, the All-Father');
+    expect(sys.logos).toBe('Private Investigator');
+  });
+
+  it('has a burned tag (Wisdom of ages)', () => {
+    const burnedTag = CITY_OF_MIST_CHARACTER.items.find(
+      (i) =>
+        (i as Record<string, unknown>).name === 'Wisdom of ages' &&
+        (i as Record<string, Record<string, unknown>>).system?.burned === true,
+    );
+    expect(burnedTag).toBeDefined();
   });
 });
 
