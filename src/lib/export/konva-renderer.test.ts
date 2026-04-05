@@ -471,4 +471,89 @@ describe('KonvaRenderer', () => {
       expect(mockAdd.mock.calls[0]?.[0]._type).toBe('Line');
     });
   });
+
+  describe('image timeout', () => {
+    it('renders placeholder on image load timeout', async () => {
+      vi.useFakeTimers();
+
+      // Image that never loads or errors
+      vi.stubGlobal(
+        'Image',
+        class {
+          crossOrigin = '';
+          src = '';
+          onload: (() => void) | null = null;
+          onerror: (() => void) | null = null;
+        },
+      );
+
+      const layout = makeLayout([
+        {
+          type: 'image',
+          x: 10,
+          y: 10,
+          width: 50,
+          height: 50,
+          style: defaultStyle,
+          imageData: 'http://example.com/slow.png',
+        },
+      ]);
+      const renderer = new KonvaRenderer(layout);
+      const renderPromise = renderer.render(makeContainer());
+
+      // Advance past IMAGE_TIMEOUT_MS (10_000)
+      vi.advanceTimersByTime(10_001);
+
+      await renderPromise;
+
+      // Should add a placeholder Rect with grey fill
+      const placeholderCall = mockAdd.mock.calls.find(
+        (c) => c[0]._type === 'Rect' && c[0].fill === '#cccccc',
+      );
+      expect(placeholderCall).toBeDefined();
+
+      vi.useRealTimers();
+    });
+  });
+
+  describe('toPNGBlob() error path', () => {
+    it('throws on fetch failure', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockRejectedValue(new Error('fetch failed')),
+      );
+
+      const renderer = new KonvaRenderer(makeLayout([]));
+      await renderer.render(makeContainer());
+
+      await expect(renderer.toPNGBlob()).rejects.toThrow(
+        'Failed to convert PNG data URL to Blob',
+      );
+    });
+  });
+
+  describe('static toPNGBlob()', () => {
+    it('renders offscreen and returns a blob', async () => {
+      const mockBlob = new Blob(['png-data'], { type: 'image/png' });
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({ blob: () => Promise.resolve(mockBlob) }),
+      );
+
+      const layout = makeLayout([
+        {
+          type: 'rect',
+          x: 0,
+          y: 0,
+          width: 210,
+          height: 297,
+          style: { ...defaultStyle, fill: '#ffffff' },
+        },
+      ]);
+      const blob = await KonvaRenderer.toPNGBlob(layout);
+      expect(blob).toBeInstanceOf(Blob);
+      expect(document.body.appendChild).toHaveBeenCalled();
+      expect(document.body.removeChild).toHaveBeenCalled();
+    });
+  });
 });

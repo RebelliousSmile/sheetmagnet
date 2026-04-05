@@ -17,14 +17,14 @@ Sheet Magnet connects to your Foundry VTT instance and exports character sheets 
 ┌─────────────────────────┐              ┌─────────────────────────┐
 │   FOUNDRY VTT           │              │   SHEET MAGNET PWA      │
 │   (your PC/server)      │              │   (your browser)        │
-├─────────────────────────┤    LAN       ├─────────────────────────┤
+├─────────────────────────┤  socket.io   ├─────────────────────────┤
 │ foundry-module/         │◄────────────►│ src/                    │
-│   scripts/api.js        │    HTTP      │   lib/connectors/       │
-│   (REST API server)     │              │   (fetch client)        │
+│   scripts/api.js        │  WebSocket   │   lib/connectors/       │
+│   (socket handler)      │              │   (socket.io client)    │
 └─────────────────────────┘              └─────────────────────────┘
          │                                         │
-         │ Exposes actors                          │ Fetch → Render → Export
-         │ via /api/sheet-magnet                   │
+         │ Exposes actors via                      │ Connect → Render → Export
+         │ socket.io channel                       │
          │                                         ▼
          │                               ┌─────────────────────────┐
          │                               │ Template Engine         │
@@ -70,7 +70,7 @@ sheet-magnet/
 ├── foundry-module/               # Foundry VTT Module
 │   ├── module.json               # Module manifest
 │   ├── scripts/
-│   │   └── api.js                # REST API + CORS
+│   │   └── api.js                # Socket.io handler
 │   └── templates/
 │       └── connection-dialog.html # QR code UI
 │
@@ -100,10 +100,10 @@ Then enable "Sheet Magnet Connector" in your world's module settings.
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start dev server
-npm run dev
+pnpm dev
 ```
 
 Open http://localhost:5173 on your phone or PC.
@@ -113,7 +113,7 @@ Open http://localhost:5173 on your phone or PC.
 1. In Foundry, open the **Actors Directory**
 2. Click the **Sheet Magnet** button (QR icon)
 3. Scan the QR code with your phone, or manually enter:
-   - **URL**: `http://<your-foundry-ip>:30000/api/sheet-magnet`
+   - **URL**: `http://<your-foundry-ip>:30000`
    - **Token**: (shown in the dialog)
 
 ### 4. Export
@@ -127,16 +127,16 @@ Open http://localhost:5173 on your phone or PC.
 
 ```bash
 # Dev server with hot reload
-npm run dev
+pnpm dev
 
-# Type checking
-npm run check
+# Type checking + lint + tests
+pnpm check
 
 # Production build
-npm run build
+pnpm build
 
 # Preview production build
-npm run preview
+pnpm preview
 ```
 
 ## Tech Stack
@@ -168,7 +168,7 @@ npm run preview
 - [x] Poker card format
 - [x] Template engine with bindings
 - [x] Konva preview
-- [ ] System-specific templates (City of Mist, D&D 5e, etc.)
+- [x] System-specific templates (City of Mist, D&D 5e, PbtA, Cypher, Legend in the Mist)
 - [ ] Printful API integration
 - [ ] More print formats (stickers, pencil wraps, mugs)
 - [x] QR code scanner for mobile

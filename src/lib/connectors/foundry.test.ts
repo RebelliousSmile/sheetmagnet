@@ -320,4 +320,170 @@ describe('FoundryConnector.disconnect', () => {
     expect(mockSocket.disconnect).toHaveBeenCalled();
     expect(connector.getServerInfo()).toBeNull();
   });
+
+  it('handles socket without disconnect method', () => {
+    const connector = FoundryConnector.fromManualInput(
+      'http://localhost:30000',
+      'tok',
+    );
+    // Inject socket without disconnect
+    (connector as unknown as { socket: unknown }).socket = {};
+    connector.disconnect();
+    expect(connector.getServerInfo()).toBeNull();
+  });
+
+  it('handles null socket', () => {
+    const connector = FoundryConnector.fromManualInput(
+      'http://localhost:30000',
+      'tok',
+    );
+    connector.disconnect();
+    expect(connector.getServerInfo()).toBeNull();
+  });
+});
+
+describe('FoundryConnector.connect', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid-connect' });
+  });
+
+  it('throws NO_SOCKET when window.io is not available', async () => {
+    const connector = FoundryConnector.fromManualInput(
+      'http://localhost:30000',
+      'tok',
+    );
+    // Simulate browser without socket.io
+    vi.stubGlobal('window', {});
+
+    await expect(connector.connect()).rejects.toThrow(FoundryConnectionError);
+    try {
+      await connector.connect();
+    } catch (e) {
+      expect((e as FoundryConnectionError).code).toBe('NO_SOCKET');
+    }
+  });
+
+  it('throws CONNECTION_FAILED on non-FoundryConnectionError', async () => {
+    const connector = FoundryConnector.fromManualInput(
+      'http://localhost:30000',
+      'tok',
+    );
+    // Simulate window with io that throws generic error
+    vi.stubGlobal('window', {
+      io: () => {
+        throw new Error('network failure');
+      },
+    });
+
+    await expect(connector.connect()).rejects.toThrow(FoundryConnectionError);
+    try {
+      await connector.connect();
+    } catch (e) {
+      expect((e as FoundryConnectionError).code).toBe('CONNECTION_FAILED');
+    }
+  });
+
+  it('connects via window.io and returns server info', async () => {
+    const mockSocket = createMockSocket();
+    const serverInfo = {
+      module: 'sheet-magnet-connector',
+      version: '1.0.0',
+      foundry: '12.0.0',
+      system: { id: 'dnd5e', title: 'D&D 5e', version: '3.0.0' },
+      world: 'test-world',
+    };
+
+    mockSocket.emit.mockImplementation((key, data) => {
+      const payload = data as Record<string, unknown>;
+      setTimeout(() => {
+        mockSocket._simulateResponse(
+          key,
+          payload.requestId as string,
+          serverInfo,
+        );
+      }, 0);
+    });
+
+    vi.stubGlobal('window', { io: () => mockSocket });
+
+    const connector = FoundryConnector.fromManualInput(
+      'http://localhost:30000',
+      'tok',
+    );
+    const info = await connector.connect();
+    expect(info.module).toBe('sheet-magnet-connector');
+    expect(info.system.id).toBe('dnd5e');
+    expect(connector.getServerInfo()).toEqual(info);
+    expect(connector.getSystemInfo()).toEqual(serverInfo.system);
+  });
+
+  it('reuses existing socket on second connect', async () => {
+    const mockSocket = createMockSocket();
+    const serverInfo = {
+      module: 'sheet-magnet-connector',
+      version: '1.0.0',
+      foundry: '12.0.0',
+      system: { id: 'dnd5e', title: 'D&D 5e', version: '3.0.0' },
+      world: 'test-world',
+    };
+
+    mockSocket.emit.mockImplementation((key, data) => {
+      const payload = data as Record<string, unknown>;
+      setTimeout(() => {
+        mockSocket._simulateResponse(
+          key,
+          payload.requestId as string,
+          serverInfo,
+        );
+      }, 0);
+    });
+
+    const connector = createConnectorWithSocket(mockSocket);
+    const info = await connector.connect();
+    expect(info.module).toBe('sheet-magnet-connector');
+  });
+});
+
+describe('FoundryConnector sendMessage timeout', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid-timeout' });
+    vi.useFakeTimers();
+  });
+
+  it('rejects with TIMEOUT when server does not respond', async () => {
+    const mockSocket = createMockSocket();
+    // Override emit to NOT send any response
+    mockSocket.emit.mockImplementation(() => {});
+
+    const connector = createConnectorWithSocket(mockSocket);
+    const promise = connector.getActors();
+
+    // Advance time past the 10s timeout
+    vi.advanceTimersByTime(10_001);
+
+    await expect(promise).rejects.toThrow(FoundryConnectionError);
+    try {
+      await promise;
+    } catch (e) {
+      expect((e as FoundryConnectionError).code).toBe('TIMEOUT');
+    }
+
+    vi.useRealTimers();
+  });
+});
+
+describe('FoundryConnector.fromEncodedData with socketKey', () => {
+  it('passes custom socketKey from encoded config', () => {
+    const encoded = btoa(
+      JSON.stringify({
+        url: 'http://localhost:30000',
+        token: 'tok',
+        socketKey: 'module.custom-key',
+      }),
+    );
+    const connector = FoundryConnector.fromEncodedData(encoded);
+    expect(connector).toBeInstanceOf(FoundryConnector);
+  });
 });
