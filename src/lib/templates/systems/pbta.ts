@@ -40,7 +40,7 @@ export const TEMPLATE_A4_PBTA: TemplateDefinition = {
   layout: [
     ...background(210, 297, '#f9f7f2'),
     ...header(210, {
-      subtitle1: '{{actor.type}}',
+      subtitle1: '{{actor.system.playbook.name}}',
       badge: 'Powered by the Apocalypse',
     }),
 

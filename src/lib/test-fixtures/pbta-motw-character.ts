@@ -21,6 +21,11 @@ export const PBTA_MOTW_CHARACTER: ActorData = {
       tough: { value: 2 },
       weird: { value: -1 },
     },
+    playbook: {
+      name: 'The Chosen',
+      slug: 'chosen',
+      uuid: '',
+    },
     details: {
       look: 'Athletic build, leather jacket, determined eyes, old scars',
       gear: 'Big sword (3-harm hand messy), protective amulet (1-armour)',

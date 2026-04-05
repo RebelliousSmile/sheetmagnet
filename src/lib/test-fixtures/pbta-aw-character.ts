@@ -23,6 +23,11 @@ export const PBTA_AW_CHARACTER: ActorData = {
       sharp: { value: 1 },
       weird: { value: -1 },
     },
+    playbook: {
+      name: 'The Battlebabe',
+      slug: 'battlebabe',
+      uuid: '',
+    },
     details: {
       look: 'Woman, formal wear, calculating eyes, graceful hands',
       gear: 'Custom firearms (2-harm close loud), hidden knives (2-harm hand)',
