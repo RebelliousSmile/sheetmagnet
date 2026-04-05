@@ -615,3 +615,14 @@ export function getTemplate(id: string): TemplateDefinition | undefined {
 export function listTemplates(): TemplateDefinition[] {
   return Object.values(TEMPLATES);
 }
+
+/** List templates compatible with a system: system-specific + generics */
+export function listTemplatesForSystem(systemId: string): TemplateDefinition[] {
+  return Object.values(TEMPLATES).filter(
+    (t) => !t.meta.systemId || t.meta.systemId === systemId,
+  );
+}
+
+export function registerTemplate(template: TemplateDefinition): void {
+  TEMPLATES[template.meta.id] = template;
+}

@@ -11,6 +11,7 @@ import type { ActorData } from '$lib/connectors/foundry';
 import { PdfRenderer } from '$lib/export/pdf-renderer';
 import {
   getTemplate,
+  listTemplatesForSystem,
   TEMPLATE_A3,
   TEMPLATE_A4,
   TEMPLATE_A5,
@@ -18,6 +19,9 @@ import {
   TEMPLATE_POKER_CARD,
 } from '$lib/templates/definitions';
 import { resolve } from '$lib/templates/engine';
+import '$lib/templates/systems';
+import { TEMPLATE_A4_CITY_OF_MIST } from '$lib/templates/systems/city-of-mist';
+import { TEMPLATE_A4_DND5E } from '$lib/templates/systems/dnd5e';
 import { CITY_OF_MIST_CHARACTER } from './citymist-character';
 import { DND5E_FIGHTER } from './dnd5e-fighter';
 
@@ -441,5 +445,223 @@ describe('Pipeline edge cases', () => {
     const renderer = new PdfRenderer(layout);
     const bytes = await renderer.toBytes();
     expect(bytes.length).toBeGreaterThan(0);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// System-specific template registry + filtering
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('listTemplatesForSystem()', () => {
+  it('returns dnd5e template + generics for dnd5e system', () => {
+    const templates = listTemplatesForSystem('dnd5e');
+    const ids = templates.map((t) => t.meta.id);
+    expect(ids).toContain('pdf-a4-dnd5e');
+    expect(ids).toContain('pdf-a4'); // generic
+    expect(ids).not.toContain('pdf-a4-city-of-mist');
+  });
+
+  it('returns city-of-mist template + generics for city-of-mist system', () => {
+    const templates = listTemplatesForSystem('city-of-mist');
+    const ids = templates.map((t) => t.meta.id);
+    expect(ids).toContain('pdf-a4-city-of-mist');
+    expect(ids).toContain('pdf-a4'); // generic
+    expect(ids).not.toContain('pdf-a4-dnd5e');
+  });
+
+  it('returns only generics for unknown system', () => {
+    const templates = listTemplatesForSystem('fate-core');
+    const ids = templates.map((t) => t.meta.id);
+    expect(ids).toContain('pdf-a4');
+    expect(ids).not.toContain('pdf-a4-dnd5e');
+    expect(ids).not.toContain('pdf-a4-city-of-mist');
+  });
+});
+
+describe('getTemplate() finds system templates', () => {
+  it('resolves dnd5e template by ID', () => {
+    expect(getTemplate('pdf-a4-dnd5e')).toBe(TEMPLATE_A4_DND5E);
+  });
+
+  it('resolves city-of-mist template by ID', () => {
+    expect(getTemplate('pdf-a4-city-of-mist')).toBe(TEMPLATE_A4_CITY_OF_MIST);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// D&D 5e dedicated template — full resolution
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('D&D 5e dedicated template — A4', () => {
+  const layout = resolve(TEMPLATE_A4_DND5E, { actor: DND5E_FIGHTER });
+
+  it('resolves without error', () => {
+    expect(layout.elements.length).toBeGreaterThan(0);
+  });
+
+  it('has systemId set to dnd5e', () => {
+    expect(TEMPLATE_A4_DND5E.meta.systemId).toBe('dnd5e');
+  });
+
+  it('resolves character name', () => {
+    const el = layout.elements.find(
+      (e) => e.type === 'text' && e.content === 'Kael Ironforge',
+    );
+    expect(el).toBeDefined();
+  });
+
+  it('resolves race', () => {
+    const el = layout.elements.find(
+      (e) => e.type === 'text' && e.content === 'Mountain Dwarf',
+    );
+    expect(el).toBeDefined();
+  });
+
+  it('resolves alignment', () => {
+    const el = layout.elements.find(
+      (e) => e.type === 'text' && e.content === 'Lawful Good',
+    );
+    expect(el).toBeDefined();
+  });
+
+  it('resolves level display', () => {
+    const el = layout.elements.find(
+      (e) => e.type === 'text' && e.content === 'Level 5',
+    );
+    expect(el).toBeDefined();
+  });
+
+  it('resolves all 6 ability scores', () => {
+    const scores = ['18', '14', '16', '10', '12', '8'];
+    for (const score of scores) {
+      const el = layout.elements.find(
+        (e) => e.type === 'text' && e.content === score,
+      );
+      expect(el, `ability score ${score} not found`).toBeDefined();
+    }
+  });
+
+  it('resolves HP', () => {
+    const el = layout.elements.find(
+      (e) => e.type === 'text' && e.content === '44 / 44',
+    );
+    expect(el).toBeDefined();
+  });
+
+  it('resolves AC', () => {
+    const el = layout.elements.find(
+      (e) => e.type === 'text' && e.content === '18',
+    );
+    expect(el).toBeDefined();
+  });
+
+  it('resolves proficiency bonus', () => {
+    const el = layout.elements.find(
+      (e) => e.type === 'text' && e.content === '+3',
+    );
+    expect(el).toBeDefined();
+  });
+
+  it('resolves currency', () => {
+    const gp = layout.elements.find(
+      (e) => e.type === 'text' && e.content === '45',
+    );
+    expect(gp).toBeDefined();
+  });
+
+  it('resolves inventory items', () => {
+    const axe = layout.elements.find(
+      (e) => e.type === 'text' && e.content === 'Battleaxe +1',
+    );
+    expect(axe).toBeDefined();
+  });
+
+  it('generates valid PDF', async () => {
+    const renderer = new PdfRenderer(layout);
+    const bytes = await renderer.toBytes();
+    const header = new TextDecoder().decode(bytes.slice(0, 4));
+    expect(header).toBe('%PDF');
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// City of Mist dedicated template — full resolution
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('City of Mist dedicated template — A4', () => {
+  const layout = resolve(TEMPLATE_A4_CITY_OF_MIST, {
+    actor: CITY_OF_MIST_CHARACTER,
+  });
+
+  it('resolves without error', () => {
+    expect(layout.elements.length).toBeGreaterThan(0);
+  });
+
+  it('has systemId set to city-of-mist', () => {
+    expect(TEMPLATE_A4_CITY_OF_MIST.meta.systemId).toBe('city-of-mist');
+  });
+
+  it('resolves character name', () => {
+    const el = layout.elements.find(
+      (e) => e.type === 'text' && e.content === 'Detective Marlowe',
+    );
+    expect(el).toBeDefined();
+  });
+
+  it('resolves mythos identity', () => {
+    const el = layout.elements.find(
+      (e) => e.type === 'text' && e.content === 'Odin, the All-Father',
+    );
+    expect(el).toBeDefined();
+  });
+
+  it('resolves logos identity', () => {
+    const el = layout.elements.find(
+      (e) => e.type === 'text' && e.content === 'Private Investigator',
+    );
+    expect(el).toBeDefined();
+  });
+
+  it('resolves themes via filter (items with mystery)', () => {
+    const theme = layout.elements.find(
+      (e) => e.type === 'text' && e.content?.includes('Eye of Odin'),
+    );
+    expect(theme).toBeDefined();
+  });
+
+  it('resolves tags via filter (items with subtype)', () => {
+    const tag = layout.elements.find(
+      (e) => e.type === 'text' && e.content === 'Visions of the future',
+    );
+    expect(tag).toBeDefined();
+  });
+
+  it('resolves statuses via filter (items with tier)', () => {
+    const status = layout.elements.find(
+      (e) => e.type === 'text' && e.content === 'Tired-2',
+    );
+    expect(status).toBeDefined();
+  });
+
+  it('resolves clues via filter (items with source)', () => {
+    const clue = layout.elements.find(
+      (e) =>
+        e.type === 'text' && e.content === 'The warehouse fire was no accident',
+    );
+    expect(clue).toBeDefined();
+  });
+
+  it('resolves description', () => {
+    const el = layout.elements.find(
+      (e) => e.type === 'text' && e.content === 'He sees more than he lets on.',
+    );
+    expect(el).toBeDefined();
+  });
+
+  it('generates valid PDF', async () => {
+    const renderer = new PdfRenderer(layout);
+    const bytes = await renderer.toBytes();
+    const header = new TextDecoder().decode(bytes.slice(0, 4));
+    expect(header).toBe('%PDF');
   });
 });

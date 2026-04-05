@@ -9,6 +9,8 @@ export interface TemplateMeta {
   width: number; // mm
   height: number; // mm
   exports: ('pdf' | 'png')[];
+  /** Foundry system ID (e.g. 'dnd5e', 'city-of-mist'). Undefined = generic. */
+  systemId?: string;
   printful?: string | null;
 }
 
