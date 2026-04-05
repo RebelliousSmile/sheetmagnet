@@ -1,6 +1,7 @@
 <script lang="ts">
 import { goto } from '$app/navigation';
 import { onMount } from 'svelte';
+import { t } from '$lib/i18n';
 import { connection, isConnected, selectedActorIds } from '$lib/stores/session';
 import { listTemplatesForSystem, listTemplates } from '$lib/templates';
 // Side-effect import: registers system templates into TEMPLATES registry
@@ -46,8 +47,8 @@ function formatIcon(template: {
 </script>
 
 <div class="page-header">
-  <h1>Choose Format</h1>
-  <p>Select an export format for your {$selectedActorIds.size} character(s)</p>
+  <h1>{$t.template.title}</h1>
+  <p>{$t.template.subtitle.replace('{count}', String($selectedActorIds.size))}</p>
   {#if systemId}
     <p class="system-badge">{systemId}</p>
   {/if}
@@ -61,7 +62,7 @@ function formatIcon(template: {
 </div>
 
 {#if systemTemplates.length > 0}
-  <h2 class="section-label">System-specific</h2>
+  <h2 class="section-label">{$t.template.systemSpecific}</h2>
   <div class="template-grid">
     {#each systemTemplates as template (template.meta.id)}
       <button
@@ -78,7 +79,7 @@ function formatIcon(template: {
 {/if}
 
 {#if genericTemplates.length > 0}
-  <h2 class="section-label">Generic formats</h2>
+  <h2 class="section-label">{$t.template.genericFormats}</h2>
   <div class="template-grid">
     {#each genericTemplates as template (template.meta.id)}
       <button
@@ -98,7 +99,7 @@ function formatIcon(template: {
 
 <div style="display: flex; gap: var(--space-md); margin-top: var(--space-lg);">
   <button class="btn btn-secondary" onclick={handleBack}>
-    Back
+    {$t.template.back}
   </button>
   <button
     class="btn btn-primary"
@@ -106,7 +107,7 @@ function formatIcon(template: {
     onclick={handleContinue}
     disabled={!selectedTemplate}
   >
-    Preview
+    {$t.template.preview}
   </button>
 </div>
 

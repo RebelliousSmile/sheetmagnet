@@ -2,6 +2,7 @@
 import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 import { onMount, onDestroy } from 'svelte';
+import { t } from '$lib/i18n';
 import {
   isConnected,
   selectedActorIds,
@@ -91,7 +92,7 @@ let currentActor = $derived($selectedActors[currentActorIndex]);
 </script>
 
 <div class="page-header">
-  <h1>Preview</h1>
+  <h1>{$t.preview.title}</h1>
   <p>{templateId.toUpperCase().replace('-', ' ')}</p>
 </div>
 
@@ -139,19 +140,19 @@ let currentActor = $derived($selectedActors[currentActorIndex]);
 
   <div style="display: flex; gap: var(--space-md); margin-top: var(--space-lg);">
     <button class="btn btn-secondary" onclick={handleBack}>
-      Back
+      {$t.preview.back}
     </button>
     <button 
       class="btn btn-primary" 
       style="flex: 1;"
       onclick={handleExport}
     >
-      Export
+      {$t.preview.export}
     </button>
   </div>
 {:else}
   <div class="card" style="text-align: center;">
-    <p>No character data available</p>
+    <p>{$t.preview.noData}</p>
   </div>
 {/if}
 

@@ -1,19 +1,9 @@
 /**
  * PbtA (Powered by the Apocalypse) Character Sheet — A4 Template
- * Composed from agnostic building blocks.
- *
- * Works with ANY PbtA game (Apocalypse World, Monster of the Week, etc.)
- * because it uses object iteration on actor.system.stats — the stat
- * names adapt automatically (cool/hard/hot/sharp/weird for AW,
- * charm/cool/sharp/tough/weird for MotW, etc.)
- *
- * Architecture:
- * - actor.system.stats: object {statName: {value: number}}
- * - actor.system.details: look, gear, Hx, etc.
- * - actor.system.resources: harm, experience, luck, etc.
- * - actor.items: playbook (type), moves (basic+playbook), equipment
+ * Works with ANY PbtA game via object iteration on stats.
  */
 
+import { getTranslation } from '$lib/i18n';
 import {
   BASE_STYLES,
   background,
@@ -26,6 +16,8 @@ import {
 import { registerTemplate } from '../definitions';
 import type { TemplateDefinition } from '../types';
 
+const p = () => getTranslation().pdf;
+
 export const TEMPLATE_A4_PBTA: TemplateDefinition = {
   meta: {
     id: 'pdf-a4-pbta',
@@ -37,114 +29,117 @@ export const TEMPLATE_A4_PBTA: TemplateDefinition = {
     exports: ['pdf', 'png'],
   },
   styles: BASE_STYLES,
-  layout: [
-    ...background(210, 297, '#f9f7f2'),
-    ...header(210, {
-      subtitle1: '{{actor.system.playbook.name}}',
-      badge: 'Powered by the Apocalypse',
-    }),
+  get layout() {
+    const t = p();
+    return [
+      ...background(210, 297, '#f9f7f2'),
+      ...header(210, {
+        subtitle1: '{{actor.system.playbook.name}}',
+        badge: 'Powered by the Apocalypse',
+      }),
 
-    // ── Stats — iterates over actor.system.stats object ──────────
-    ...section('STATS', 58),
-    {
-      type: 'repeat',
-      x: 10,
-      y: 69,
-      bind: '{{actor.system.stats}}',
-      direction: 'horizontal',
-      gap: 3,
-      maxItems: 8,
-      template: [
-        {
-          type: 'group',
-          x: 0,
-          y: 0,
-          width: 30,
-          height: 18,
-          elements: [
-            {
-              type: 'rect',
-              x: 0,
-              y: 0,
-              width: 30,
-              height: 18,
-              style: { fill: '#f0ece4', stroke: '#d0c8b8', strokeWidth: 0.2 },
-              radius: 2,
-            },
-            {
-              type: 'text',
-              x: 15,
-              y: 2,
-              content: '{{item.key}}',
-              style: {
-                fontSize: 6,
-                fontWeight: 'bold',
-                color: '#888888',
-                align: 'center',
+      ...section(t.stats, 58),
+      {
+        type: 'repeat' as const,
+        x: 10,
+        y: 69,
+        bind: '{{actor.system.stats}}',
+        direction: 'horizontal' as const,
+        gap: 3,
+        maxItems: 8,
+        template: [
+          {
+            type: 'group' as const,
+            x: 0,
+            y: 0,
+            width: 30,
+            height: 18,
+            elements: [
+              {
+                type: 'rect' as const,
+                x: 0,
+                y: 0,
+                width: 30,
+                height: 18,
+                style: {
+                  fill: '#f0ece4',
+                  stroke: '#d0c8b8',
+                  strokeWidth: 0.2,
+                },
+                radius: 2,
               },
-            },
-            {
-              type: 'text',
-              x: 15,
-              y: 8,
-              content: '{{item.value}}',
-              style: {
-                fontSize: 12,
-                fontWeight: 'bold',
-                color: '#1a1a2e',
-                align: 'center',
+              {
+                type: 'text' as const,
+                x: 15,
+                y: 2,
+                content: '{{item.key}}',
+                style: {
+                  fontSize: 6,
+                  fontWeight: 'bold' as const,
+                  color: '#888888',
+                  align: 'center' as const,
+                },
               },
-            },
-          ],
-        },
-      ],
-    },
+              {
+                type: 'text' as const,
+                x: 15,
+                y: 8,
+                content: '{{item.value}}',
+                style: {
+                  fontSize: 12,
+                  fontWeight: 'bold' as const,
+                  color: '#1a1a2e',
+                  align: 'center' as const,
+                },
+              },
+            ],
+          },
+        ],
+      },
 
-    // ── Resources (harm, experience) ─────────────────────────────
-    ...section('RESOURCES', 93),
-    ...statRow(
-      [
-        {
-          label: 'HARM',
-          binding:
-            '{{actor.system.resources.harm.value}} / {{actor.system.resources.harm.max}}',
-        },
-        {
-          label: 'EXPERIENCE',
-          binding:
-            '{{actor.system.resources.experience.value}} / {{actor.system.resources.experience.max}}',
-        },
-      ],
-      107,
-    ),
+      ...section(t.resources, 93),
+      ...statRow(
+        [
+          {
+            label: 'HARM',
+            binding:
+              '{{actor.system.resources.harm.value}} / {{actor.system.resources.harm.max}}',
+          },
+          {
+            label: 'EXPERIENCE',
+            binding:
+              '{{actor.system.resources.experience.value}} / {{actor.system.resources.experience.max}}',
+          },
+        ],
+        107,
+      ),
 
-    // ── Look & Gear ──────────────────────────────────────────────
-    ...section('DETAILS', 125),
-    ...statRow(
-      [{ label: 'LOOK', binding: '{{actor.system.details.look}}' }],
-      139,
-    ),
-    ...statRow(
-      [{ label: 'GEAR', binding: '{{actor.system.details.gear}}' }],
-      155,
-    ),
+      ...section(t.details, 125),
+      ...statRow(
+        [{ label: 'LOOK', binding: '{{actor.system.details.look}}' }],
+        139,
+      ),
+      ...statRow(
+        [{ label: 'GEAR', binding: '{{actor.system.details.gear}}' }],
+        155,
+      ),
 
-    // ── Moves — playbook moves first, then basic ─────────────────
-    ...itemList('PLAYBOOK MOVES', 170, {
-      filter: '{{item.system.moveType}}',
-      filterValue: 'playbook',
-      maxItems: 6,
-      fontSize: 8,
-    }),
+      ...itemList(t.playbookMoves, 170, {
+        filter: '{{item.system.moveType}}',
+        filterValue: 'playbook',
+        maxItems: 6,
+        fontSize: 8,
+      }),
 
-    ...itemList('BASIC MOVES', 215, {
-      filter: '{{item.system.moveType}}',
-      filterValue: 'basic',
-      maxItems: 8,
-    }),
+      ...itemList(t.basicMoves, 215, {
+        filter: '{{item.system.moveType}}',
+        filterValue: 'basic',
+        maxItems: 8,
+      }),
 
-    ...footer('PbtA — Generated by Sheet Magnet', 297),
-  ],
+      ...footer(`PbtA — ${t.footer}`, 297),
+    ];
+  },
 };
 
 registerTemplate(TEMPLATE_A4_PBTA);

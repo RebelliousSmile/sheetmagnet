@@ -1,6 +1,7 @@
 <script lang="ts">
 import { goto } from '$app/navigation';
 import { onMount } from 'svelte';
+import { t } from '$lib/i18n';
 import {
   connection,
   isConnected,
@@ -45,7 +46,7 @@ function isSelected(actorId: string): boolean {
 </script>
 
 <div class="page-header">
-  <h1>Select Characters</h1>
+  <h1>{$t.select.title}</h1>
   {#if $connection.serverInfo}
     <p>
       <span class="status status-success">
@@ -69,9 +70,9 @@ function isSelected(actorId: string): boolean {
   </div>
 {:else if $actorsList.length === 0}
   <div class="card" style="text-align: center;">
-    <p>No characters found in this world.</p>
+    <p>{$t.select.noCharacters}</p>
     <button class="btn btn-secondary" onclick={handleDisconnect} style="margin-top: var(--space-md);">
-      Disconnect
+      {$t.select.disconnect}
     </button>
   </div>
 {:else}
@@ -111,7 +112,7 @@ function isSelected(actorId: string): boolean {
 
   <div style="display: flex; gap: var(--space-md); margin-top: var(--space-lg);">
     <button class="btn btn-secondary" onclick={handleDisconnect}>
-      Disconnect
+      {$t.select.disconnect}
     </button>
     <button 
       class="btn btn-primary" 
@@ -119,7 +120,7 @@ function isSelected(actorId: string): boolean {
       onclick={handleContinue}
       disabled={$selectedActorIds.size === 0}
     >
-      Continue ({$selectedActorIds.size})
+      {$t.select.continue} ({$selectedActorIds.size})
     </button>
   </div>
 {/if}

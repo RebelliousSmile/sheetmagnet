@@ -5,6 +5,8 @@
  * All coordinates are in mm. All bindings use {{path}} syntax.
  */
 
+import { get } from 'svelte/store';
+import { headerColor } from '$lib/stores/preferences';
 import type { ElementStyle, RenderElement } from './types';
 
 // ── Shared style presets ─────────────────────────────────────────────────────
@@ -57,7 +59,7 @@ export function header(
   } = {},
 ): RenderElement[] {
   const h = opts.barHeight ?? 50;
-  const color = opts.barColor ?? '#1a1a2e';
+  const color = opts.barColor ?? get(headerColor);
   const els: RenderElement[] = [
     {
       type: 'rect',
