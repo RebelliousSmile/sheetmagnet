@@ -2,10 +2,10 @@
   "id": "sheet-magnet-connector",
   "title": "Sheet Magnet Connector",
   "description": "Expose actors to Sheet Magnet PWA for export to multiple formats",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "compatibility": {
-    "minimum": "10",
-    "verified": "12"
+    "minimum": "12",
+    "verified": "14"
   },
   "authors": [
     {
@@ -13,7 +13,9 @@
       "url": "https://github.com/RebelliousSmile"
     }
   ],
-  "scripts": ["scripts/api.js"],
+  "scripts": [
+    "scripts/api.js"
+  ],
   "socket": true,
   "url": "https://github.com/RebelliousSmile/sheet-magnet-connector",
   "manifest": "https://raw.githubusercontent.com/RebelliousSmile/sheet-magnet-connector/main/module.json",
