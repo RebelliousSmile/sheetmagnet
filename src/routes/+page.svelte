@@ -12,7 +12,12 @@ import {
   isConnected,
 } from '$lib/stores/session';
 
-let url = $state('');
+const STORAGE_KEY = 'foundry_url';
+let url = $state(
+  typeof localStorage !== 'undefined'
+    ? (localStorage.getItem(STORAGE_KEY) ?? '')
+    : '',
+);
 let token = $state('');
 let isLoading = $state(false);
 let isScanning = $state(false);
@@ -96,6 +101,7 @@ async function handleEncodedConnect(encoded: string) {
 async function handleManualConnect() {
   if (!url || !token) return;
 
+  localStorage.setItem(STORAGE_KEY, url);
   isLoading = true;
   const success = await connect(url, token);
   isLoading = false;
