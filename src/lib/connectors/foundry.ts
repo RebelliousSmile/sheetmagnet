@@ -94,8 +94,9 @@ export class FoundryConnector {
 
   constructor(config: ConnectionConfig) {
     let url = config.url.replace(/\/$/, '');
-    // Strip /api/sheet-magnet if present (legacy REST URLs)
+    // Strip known path suffixes — socket.io connects to the root
     url = url.replace(/\/api\/sheet-magnet$/, '');
+    url = url.replace(/\/game$/, '');
     this.baseUrl = url;
     this.token = config.token;
     this.socketKey = config.socketKey ?? SOCKET_KEY;
@@ -202,7 +203,10 @@ export class FoundryConnector {
     try {
       if (!this.socket) {
         const { io } = await import('socket.io-client');
-        this.socket = io(this.baseUrl, { transports: ['websocket'] });
+        this.socket = io(this.baseUrl, {
+          transports: ['websocket', 'polling'],
+          withCredentials: true,
+        });
       }
 
       this.serverInfo = await this.sendMessage<FoundryServerInfo>('info');
