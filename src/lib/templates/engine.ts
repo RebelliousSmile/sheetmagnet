@@ -167,13 +167,17 @@ function resolveElement(
       const rawItems = getByPath(bindPath, data);
       if (!Array.isArray(rawItems)) return [];
 
-      // Apply filter: only include items where filter path is truthy
+      // Apply filter: truthy check or exact value match
       let items: unknown[] = rawItems;
       if (el.filter) {
         const filterPath = el.filter.replace(/^\{\{|\}\}$/g, '').trim();
         items = items.filter((item) => {
           const itemData = { ...data, item };
-          return Boolean(getByPath(filterPath, itemData));
+          const val = getByPath(filterPath, itemData);
+          if (el.filterValue !== undefined) {
+            return String(val) === el.filterValue;
+          }
+          return Boolean(val);
         });
       }
 

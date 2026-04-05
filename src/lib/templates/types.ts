@@ -77,6 +77,8 @@ export interface RepeatElement extends BaseElement {
   maxItems?: number;
   /** Filter items: only include items where this path is truthy */
   filter?: string;
+  /** Filter items: only include items where filter path equals this value */
+  filterValue?: string;
   template: RenderElement[];
 }
 

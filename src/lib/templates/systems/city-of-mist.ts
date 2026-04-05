@@ -3,7 +3,10 @@
  * Composed from agnostic building blocks.
  *
  * City of Mist stores game data as embedded Items:
- * themes (mystery), tags (subtype), statuses (tier), clues (source)
+ * - type:"theme" with system.subtype "Mythos"|"Logos" and system.mystery
+ * - type:"tag" with system.subtype "power"|"weakness"|"story"
+ * - type:"status" with system.tier (number)
+ * - type:"clue" with system.source (string)
  */
 
 import {
@@ -51,6 +54,7 @@ export const TEMPLATE_A4_CITY_OF_MIST: TemplateDefinition = {
     ...identity('{{actor.system.mythos}}', 27, '#c4a35a'),
     ...identity('{{actor.system.logos}}', 36, '#8899aa'),
 
+    // Themes — items with system.mystery (only themes have this)
     ...itemList('THEMES', 62, {
       filter: '{{item.system.mystery}}',
       content: '{{item.name}} — {{item.system.mystery}}',
@@ -58,23 +62,36 @@ export const TEMPLATE_A4_CITY_OF_MIST: TemplateDefinition = {
       fontSize: 8,
     }),
 
+    // Power tags — items where system.subtype === "power"
     ...itemList('POWER TAGS', 102, {
       filter: '{{item.system.subtype}}',
-      maxItems: 16,
+      filterValue: 'power',
+      maxItems: 12,
       width: 90,
     }),
 
-    ...itemList('STATUSES', 102, {
-      filter: '{{item.system.tier}}',
+    // Weakness tags — items where system.subtype === "weakness"
+    ...itemList('WEAKNESS TAGS', 102, {
+      filter: '{{item.system.subtype}}',
+      filterValue: 'weakness',
       maxItems: 8,
       x: 110,
       width: 90,
     }),
 
-    ...itemList('CLUES', 195, {
+    // Statuses — items with system.tier (number, truthy if > 0)
+    ...itemList('STATUSES', 175, {
+      filter: '{{item.system.tier}}',
+      maxItems: 8,
+      width: 90,
+    }),
+
+    // Clues — items with system.source
+    ...itemList('CLUES', 175, {
       filter: '{{item.system.source}}',
-      content: '{{item.name}}',
       maxItems: 10,
+      x: 110,
+      width: 90,
       fontSize: 8,
     }),
 

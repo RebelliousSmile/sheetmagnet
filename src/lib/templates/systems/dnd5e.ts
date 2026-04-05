@@ -74,13 +74,18 @@ export const TEMPLATE_A4_DND5E: TemplateDefinition = {
           binding:
             '{{actor.system.attributes.death.success}} / {{actor.system.attributes.death.failure}}',
         },
-        {
-          label: 'INSPIRATION',
-          binding: '{{actor.system.attributes.inspiration}}',
-        },
       ],
       128,
     ),
+    // Inspiration — only show when active
+    {
+      type: 'text',
+      x: 60,
+      y: 128,
+      content: 'INSPIRED',
+      condition: '{{actor.system.attributes.inspiration}}',
+      style: { fontSize: 8, fontWeight: 'bold', color: '#c4a35a' },
+    },
 
     ...section('DETAILS', 145),
     ...statRow(

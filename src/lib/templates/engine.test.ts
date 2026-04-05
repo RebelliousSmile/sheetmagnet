@@ -994,6 +994,83 @@ describe('resolve() — repeat with filter', () => {
     const result = resolve(template, dataWithTypedItems);
     expect(result.elements).toHaveLength(4);
   });
+
+  it('filters by exact value with filterValue', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 200,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'repeat',
+          x: 0,
+          y: 0,
+          bind: '{{actor.items}}',
+          filter: '{{item.type}}',
+          filterValue: 'weapon',
+          direction: 'vertical',
+          gap: 5,
+          template: [
+            {
+              type: 'text',
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 10,
+              content: '{{item.name}}',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = resolve(template, dataWithTypedItems);
+    expect(result.elements).toHaveLength(2);
+    expect(result.elements[0]?.content).toBe('Sword');
+    expect(result.elements[1]?.content).toBe('Axe');
+  });
+
+  it('filterValue excludes non-matching items', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 200,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'repeat',
+          x: 0,
+          y: 0,
+          bind: '{{actor.items}}',
+          filter: '{{item.type}}',
+          filterValue: 'spell',
+          direction: 'vertical',
+          gap: 5,
+          template: [
+            {
+              type: 'text',
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 10,
+              content: '{{item.name}}',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = resolve(template, dataWithTypedItems);
+    expect(result.elements).toHaveLength(1);
+    expect(result.elements[0]?.content).toBe('Fireball');
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────────────

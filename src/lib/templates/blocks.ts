@@ -106,11 +106,12 @@ export function header(
   if (opts.badge) {
     els.push({
       type: 'text',
-      x: pageWidth - 10,
+      x: pageWidth / 2,
       y: h - 12,
+      width: pageWidth / 2 - 10,
       content: opts.badge,
       style: {
-        fontSize: 9,
+        fontSize: 8,
         fontWeight: 'bold',
         color: '#ffffff',
         align: 'right',
@@ -282,6 +283,8 @@ export function itemList(
   opts: {
     bind?: string;
     filter?: string;
+    /** Only include items where filter path equals this value */
+    filterValue?: string;
     content?: string;
     maxItems?: number;
     x?: number;
@@ -299,6 +302,7 @@ export function itemList(
       y: y + 11,
       bind: opts.bind ?? '{{actor.items}}',
       filter: opts.filter,
+      filterValue: opts.filterValue,
       direction: 'vertical' as const,
       gap: 0.5,
       maxItems: opts.maxItems ?? 20,
