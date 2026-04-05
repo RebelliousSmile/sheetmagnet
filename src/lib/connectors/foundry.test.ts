@@ -101,6 +101,41 @@ describe('FoundryConnector.fromEncodedData', () => {
       FoundryConnectionError,
     );
   });
+
+  it('throws INVALID_DATA when encoded data is too large', () => {
+    const huge = 'A'.repeat(5001);
+    expect(() => FoundryConnector.fromEncodedData(huge)).toThrow(
+      FoundryConnectionError,
+    );
+    try {
+      FoundryConnector.fromEncodedData(huge);
+    } catch (e) {
+      expect((e as FoundryConnectionError).code).toBe('INVALID_DATA');
+    }
+  });
+
+  it('throws INVALID_DATA when config is missing url', () => {
+    const encoded = btoa(JSON.stringify({ token: 'tok' }));
+    expect(() => FoundryConnector.fromEncodedData(encoded)).toThrow(
+      FoundryConnectionError,
+    );
+  });
+
+  it('throws INVALID_DATA when config is missing token', () => {
+    const encoded = btoa(JSON.stringify({ url: 'http://localhost:30000' }));
+    expect(() => FoundryConnector.fromEncodedData(encoded)).toThrow(
+      FoundryConnectionError,
+    );
+  });
+
+  it('throws INVALID_URL for valid JSON with javascript: URL', () => {
+    const encoded = btoa(
+      JSON.stringify({ url: 'javascript:alert(1)', token: 'tok' }),
+    );
+    expect(() => FoundryConnector.fromEncodedData(encoded)).toThrow(
+      FoundryConnectionError,
+    );
+  });
 });
 
 describe('FoundryConnector.fromManualInput', () => {
@@ -151,6 +186,72 @@ describe('FoundryConnector URL normalization', () => {
       'tok',
     );
     expect(connector).toBeInstanceOf(FoundryConnector);
+  });
+
+  it('accepts https URLs', () => {
+    const connector = FoundryConnector.fromManualInput(
+      'https://foundry.example.com',
+      'tok',
+    );
+    expect(connector).toBeInstanceOf(FoundryConnector);
+  });
+
+  it('accepts ws:// URLs', () => {
+    const connector = FoundryConnector.fromManualInput(
+      'ws://localhost:30000',
+      'tok',
+    );
+    expect(connector).toBeInstanceOf(FoundryConnector);
+  });
+
+  it('accepts wss:// URLs', () => {
+    const connector = FoundryConnector.fromManualInput(
+      'wss://foundry.example.com',
+      'tok',
+    );
+    expect(connector).toBeInstanceOf(FoundryConnector);
+  });
+});
+
+describe('FoundryConnector URL protocol validation', () => {
+  it('rejects javascript: URLs', () => {
+    expect(() =>
+      FoundryConnector.fromManualInput('javascript:alert(1)', 'tok'),
+    ).toThrow(FoundryConnectionError);
+    try {
+      FoundryConnector.fromManualInput('javascript:alert(1)', 'tok');
+    } catch (e) {
+      expect((e as FoundryConnectionError).code).toBe('INVALID_URL');
+    }
+  });
+
+  it('rejects file: URLs', () => {
+    expect(() =>
+      FoundryConnector.fromManualInput('file:///etc/passwd', 'tok'),
+    ).toThrow(FoundryConnectionError);
+  });
+
+  it('rejects data: URLs', () => {
+    expect(() =>
+      FoundryConnector.fromManualInput('data:text/html,<h1>XSS</h1>', 'tok'),
+    ).toThrow(FoundryConnectionError);
+  });
+
+  it('rejects blob: URLs', () => {
+    expect(() =>
+      FoundryConnector.fromManualInput('blob:http://localhost/abc', 'tok'),
+    ).toThrow(FoundryConnectionError);
+  });
+
+  it('rejects malformed URLs', () => {
+    expect(() => FoundryConnector.fromManualInput('not-a-url', 'tok')).toThrow(
+      FoundryConnectionError,
+    );
+    try {
+      FoundryConnector.fromManualInput('not-a-url', 'tok');
+    } catch (e) {
+      expect((e as FoundryConnectionError).code).toBe('INVALID_URL');
+    }
   });
 });
 

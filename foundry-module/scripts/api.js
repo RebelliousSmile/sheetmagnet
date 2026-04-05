@@ -32,7 +32,15 @@ class SheetMagnetAPI {
   }
 
   validateToken(token) {
-    return typeof token === 'string' && token === this.token;
+    if (typeof token !== 'string' || token.length !== this.token.length) {
+      return false;
+    }
+    // Constant-time comparison to prevent timing attacks
+    let result = 0;
+    for (let i = 0; i < token.length; i++) {
+      result |= token.charCodeAt(i) ^ this.token.charCodeAt(i);
+    }
+    return result === 0;
   }
 
   // ── Handlers ─────────────────────────────────────────────────────
@@ -94,9 +102,14 @@ class SheetMagnetAPI {
     }
 
     try {
+      const parsed = new URL(actor.img, window.location.origin);
+      // Only allow http(s) protocols — block javascript:, data:, file:, etc.
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        return { error: 'Invalid image URL protocol' };
+      }
       return {
         url: actor.img,
-        absolute: new URL(actor.img, window.location.origin).href,
+        absolute: parsed.href,
       };
     } catch {
       return { error: 'Invalid image URL' };

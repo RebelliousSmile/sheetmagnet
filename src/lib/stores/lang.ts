@@ -1,3 +1,11 @@
+/**
+ * Language store — UI language preference
+ *
+ * NOTE: Language preference is stored in localStorage. This is an
+ * intentional exception to the zero-persistence rule, which applies
+ * to user/character data only — not UI preferences.
+ */
+
 import { writable } from 'svelte/store';
 
 export type Lang = 'en' | 'fr';

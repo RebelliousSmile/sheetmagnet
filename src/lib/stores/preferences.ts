@@ -1,6 +1,10 @@
 /**
  * User preferences — visual customization
- * Persisted in localStorage (UI preferences, not user data)
+ *
+ * NOTE: These UI preferences (header color) are stored in localStorage.
+ * This is an intentional exception to the zero-persistence rule, which
+ * applies to user/character data only. UI preferences contain no
+ * sensitive information and improve UX across sessions.
  */
 
 import { writable } from 'svelte/store';

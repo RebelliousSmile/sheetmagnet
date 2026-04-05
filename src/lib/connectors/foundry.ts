@@ -93,6 +93,25 @@ export class FoundryConnector {
   private socket: unknown = null;
 
   constructor(config: ConnectionConfig) {
+    // Validate URL protocol — only http(s) and ws(s) allowed
+    try {
+      const parsed = new URL(config.url);
+      if (!['http:', 'https:', 'ws:', 'wss:'].includes(parsed.protocol)) {
+        throw new FoundryConnectionError(
+          'Invalid URL protocol. Only http, https, ws, and wss are allowed.',
+          undefined,
+          'INVALID_URL',
+        );
+      }
+    } catch (e) {
+      if (e instanceof FoundryConnectionError) throw e;
+      throw new FoundryConnectionError(
+        'Invalid URL format',
+        undefined,
+        'INVALID_URL',
+      );
+    }
+
     let url = config.url.replace(/\/$/, '');
     // Strip /api/sheet-magnet if present (legacy REST URLs)
     url = url.replace(/\/api\/sheet-magnet$/, '');
@@ -105,11 +124,31 @@ export class FoundryConnector {
    * Create connector from encoded connection string (from QR code)
    */
   static fromEncodedData(encoded: string): FoundryConnector {
+    // Guard against oversized payloads (QR codes are typically < 2KB)
+    if (encoded.length > 5000) {
+      throw new FoundryConnectionError(
+        'Connection data too large',
+        undefined,
+        'INVALID_DATA',
+      );
+    }
+
     try {
       const decoded = atob(encoded);
       const config: ConnectionConfig = JSON.parse(decoded);
+
+      if (
+        !config.url ||
+        typeof config.url !== 'string' ||
+        !config.token ||
+        typeof config.token !== 'string'
+      ) {
+        throw new Error('Missing required fields');
+      }
+
       return new FoundryConnector(config);
-    } catch {
+    } catch (e) {
+      if (e instanceof FoundryConnectionError) throw e;
       throw new FoundryConnectionError(
         'Invalid connection data',
         undefined,
@@ -141,11 +180,12 @@ export class FoundryConnector {
   ): Promise<T> {
     const requestId = crypto.randomUUID();
 
-    const payload = {
+    // Build payload with explicit fields — never let params override action/token/requestId
+    const payload: Record<string, unknown> = {
+      ...params,
       action,
       token: this.token,
       requestId,
-      ...params,
     };
 
     return new Promise<T>((resolve, reject) => {
