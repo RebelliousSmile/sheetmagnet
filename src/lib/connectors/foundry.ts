@@ -200,21 +200,9 @@ export class FoundryConnector {
    */
   async connect(): Promise<FoundryServerInfo> {
     try {
-      // Dynamically import socket.io-client if available
-      // In browser: loaded from Foundry's own socket.io
-      // In tests: mocked
       if (!this.socket) {
-        if (typeof window !== 'undefined' && 'io' in window) {
-          // Foundry's page includes socket.io — connect to it
-          const io = (window as unknown as { io: (url: string) => unknown }).io;
-          this.socket = io(this.baseUrl);
-        } else {
-          throw new FoundryConnectionError(
-            'Socket.io not available. Are you on the Foundry network?',
-            undefined,
-            'NO_SOCKET',
-          );
-        }
+        const { io } = await import('socket.io-client');
+        this.socket = io(this.baseUrl, { transports: ['websocket'] });
       }
 
       this.serverInfo = await this.sendMessage<FoundryServerInfo>('info');

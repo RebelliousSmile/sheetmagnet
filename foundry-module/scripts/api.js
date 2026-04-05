@@ -149,9 +149,10 @@ Hooks.once('ready', () => {
     });
   });
 
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const host = window.location.hostname;
-  const port = window.location.port || '30000';
-  const connectionUrl = `ws://${host}:${port}`;
+  const port = window.location.port;
+  const connectionUrl = port ? `${protocol}//${host}:${port}` : `${protocol}//${host}`;
 
   console.log(`${MODULE_ID} | Socket: ${SOCKET_KEY}`);
   console.log(`${MODULE_ID} | Token: ${api.token}`);
