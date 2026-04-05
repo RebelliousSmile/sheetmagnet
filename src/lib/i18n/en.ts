@@ -29,6 +29,7 @@ export default {
   select: {
     title: 'Select Characters',
     noCharacters: 'No characters found in this world.',
+    fetchError: 'Failed to load characters. Check your Foundry connection.',
     disconnect: 'Disconnect',
     continue: 'Continue',
   },

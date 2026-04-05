@@ -130,6 +130,7 @@ import {
   selectActor,
   selectedActorIds,
   selectedActors,
+  sessionError,
   toggleActorSelection,
 } from './session';
 
@@ -341,6 +342,28 @@ describe('selectedActors derived store', () => {
     const actors = get(selectedActors);
     expect(actors).toHaveLength(1);
     expect(actors[0]?.id).toBe('a1');
+  });
+});
+
+describe('sessionError store', () => {
+  beforeEach(() => resetStores());
+
+  it('starts as null', () => {
+    expect(get(sessionError)).toBeNull();
+  });
+
+  it('is cleared on successful fetchActors', async () => {
+    await connect('http://localhost:30000', 'tok123');
+    sessionError.set('old error');
+    await fetchActors();
+    expect(get(sessionError)).toBeNull();
+  });
+
+  it('is cleared on successful fetchActorDetails', async () => {
+    await connect('http://localhost:30000', 'tok123');
+    sessionError.set('old error');
+    await fetchActorDetails('a1');
+    expect(get(sessionError)).toBeNull();
   });
 });
 

@@ -32,13 +32,17 @@ class SheetMagnetAPI {
   }
 
   validateToken(token) {
-    if (typeof token !== 'string' || token.length !== this.token.length) {
+    if (typeof token !== 'string') {
       return false;
     }
-    // Constant-time comparison to prevent timing attacks
-    let result = 0;
-    for (let i = 0; i < token.length; i++) {
-      result |= token.charCodeAt(i) ^ this.token.charCodeAt(i);
+    // Constant-time comparison — don't leak token length
+    const expected = this.token;
+    const maxLen = Math.max(token.length, expected.length);
+    let result = token.length ^ expected.length; // length mismatch = nonzero
+    for (let i = 0; i < maxLen; i++) {
+      const a = i < token.length ? token.charCodeAt(i) : 0;
+      const b = i < expected.length ? expected.charCodeAt(i) : 0;
+      result |= a ^ b;
     }
     return result === 0;
   }

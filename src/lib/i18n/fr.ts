@@ -30,6 +30,8 @@ export default {
   select: {
     title: 'Selectionner les personnages',
     noCharacters: 'Aucun personnage trouve dans ce monde.',
+    fetchError:
+      'Impossible de charger les personnages. Verifiez votre connexion Foundry.',
     disconnect: 'Deconnecter',
     continue: 'Continuer',
   },

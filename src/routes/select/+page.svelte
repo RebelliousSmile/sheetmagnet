@@ -7,6 +7,7 @@ import {
   isConnected,
   actorsList,
   selectedActorIds,
+  sessionError,
   fetchActors,
   toggleActorSelection,
   disconnect,
@@ -67,6 +68,13 @@ function isSelected(actorId: string): boolean {
 {#if isLoading}
   <div style="display: flex; justify-content: center; padding: var(--space-xl);">
     <span class="spinner"></span>
+  </div>
+{:else if $sessionError}
+  <div class="card" style="text-align: center; border-left: 3px solid var(--color-error, #e74c3c);">
+    <p>{$t.select.fetchError}</p>
+    <button class="btn btn-secondary" onclick={handleDisconnect} style="margin-top: var(--space-md);">
+      {$t.select.disconnect}
+    </button>
   </div>
 {:else if $actorsList.length === 0}
   <div class="card" style="text-align: center;">

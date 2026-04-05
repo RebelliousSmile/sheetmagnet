@@ -53,6 +53,9 @@ export const isConnected = derived(
   ($conn) => $conn.status === 'connected',
 );
 
+// Session error — surfaced to UI for fetch failures
+export const sessionError = writable<string | null>(null);
+
 // Actions
 export async function connect(url: string, token: string): Promise<boolean> {
   connection.update((s) => ({ ...s, status: 'connecting', error: null }));
@@ -115,9 +118,13 @@ export async function fetchActors(): Promise<void> {
   try {
     const result = await conn.connector.getActors();
     actorsList.set(result.actors);
+    sessionError.set(null);
   } catch (err) {
+    const message =
+      err instanceof Error ? err.message : 'Failed to fetch actors';
     console.error('Failed to fetch actors:', err);
     actorsList.set([]);
+    sessionError.set(message);
   }
 }
 
@@ -137,9 +144,13 @@ export async function fetchActorDetails(
       cache.set(actorId, actor);
       return cache;
     });
+    sessionError.set(null);
     return actor;
   } catch (err) {
+    const message =
+      err instanceof Error ? err.message : 'Failed to fetch actor';
     console.error('Failed to fetch actor:', err);
+    sessionError.set(message);
     return null;
   }
 }

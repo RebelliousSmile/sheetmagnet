@@ -201,6 +201,23 @@ export class PdfRenderer {
   ): Promise<void> {
     if (!el.imageData || !width || !height) return;
 
+    // Validate image URL protocol — only allow http(s) and data URIs
+    try {
+      if (!el.imageData.startsWith('data:')) {
+        const parsed = new URL(el.imageData);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          console.warn(
+            'Blocked image with disallowed protocol:',
+            parsed.protocol,
+          );
+          return;
+        }
+      }
+    } catch {
+      console.warn('Invalid image URL:', el.imageData);
+      return;
+    }
+
     try {
       const response = await fetch(el.imageData);
       const arrayBuffer = await response.arrayBuffer();

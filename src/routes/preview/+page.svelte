@@ -50,7 +50,7 @@ async function renderPreview() {
   // Clean up previous renderer
   if (renderer) {
     renderer.destroy();
-    previewContainer.innerHTML = '';
+    previewContainer.replaceChildren();
   }
 
   const template = getTemplate(templateId);

@@ -111,6 +111,18 @@ export class KonvaRenderer {
     const { imageData } = el;
     if (!imageData || !width || !height) return;
 
+    // Validate image URL protocol — only allow http(s) and data URIs
+    if (!imageData.startsWith('data:')) {
+      try {
+        const parsed = new URL(imageData);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          return;
+        }
+      } catch {
+        return;
+      }
+    }
+
     return new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
