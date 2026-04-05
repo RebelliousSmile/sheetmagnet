@@ -169,11 +169,11 @@ describe('D&D 5e Fighter — A4 template', () => {
     expect(labelElements).toHaveLength(6);
   });
 
-  it('applies named label style (fontSize 8)', () => {
+  it('applies label style from stat block', () => {
     const strLabel = layout.elements.find(
       (e) => e.type === 'text' && e.content === 'STR',
     );
-    expect(strLabel?.style.fontSize).toBe(8);
+    expect(strLabel?.style.fontSize).toBe(6);
     expect(strLabel?.style.color).toBe('#999999');
   });
 });
@@ -206,7 +206,7 @@ describe('City of Mist — A4 template', () => {
   it('ability scores resolve to empty for non-dnd5e system', () => {
     // City of Mist has no abilities.str, so binding resolves to empty
     const strValueElements = layout.elements.filter(
-      (e) => e.type === 'text' && e.content === '' && e.style.fontSize === 12,
+      (e) => e.type === 'text' && e.content === '' && e.style.fontSize === 11,
     );
     expect(strValueElements.length).toBeGreaterThan(0);
   });
