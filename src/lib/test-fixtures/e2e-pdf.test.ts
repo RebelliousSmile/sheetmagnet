@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import '$lib/templates/systems';
 import { CITY_OF_MIST_CHARACTER } from './citymist-character';
+import { CYPHER_CHARACTER } from './cypher-character';
 import { DND5E_FIGHTER } from './dnd5e-fighter';
 import {
   allTexts,
@@ -359,6 +360,70 @@ describe('E2E: Monster of the Week (PbtA) — dedicated template', () => {
     // MotW has 'charm', AW doesn't
     expect(hasText(motw.layout, 'charm')).toBe(true);
     expect(hasText(aw.layout, 'charm')).toBe(false);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Cypher System E2E
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('E2E: Cypher System — dedicated template', () => {
+  it('generates valid PDF with character content', async () => {
+    const { layout, bytes } = await generatePdf(
+      CYPHER_CHARACTER,
+      'pdf-a4-cypher',
+    );
+    await validatePdf(bytes);
+
+    expect(hasText(layout, 'Kira Voss')).toBe(true);
+    expect(hasText(layout, 'Cypher System')).toBe(true);
+    expect(hasText(layout, 'Stealthy')).toBe(true);
+    expect(hasText(layout, 'Nano')).toBe(true);
+  });
+
+  it('contains all 3 pools', async () => {
+    const { layout } = await generatePdf(CYPHER_CHARACTER, 'pdf-a4-cypher');
+    expect(hasText(layout, '14 / 16')).toBe(true); // might
+    expect(hasText(layout, '12 / 14')).toBe(true); // speed
+    expect(hasText(layout, '16 / 18')).toBe(true); // intellect
+  });
+
+  it('contains edge values', async () => {
+    const { layout } = await generatePdf(CYPHER_CHARACTER, 'pdf-a4-cypher');
+    const texts = allTexts(layout);
+    expect(texts).toContain('1'); // might/speed edge
+    expect(texts).toContain('2'); // intellect edge
+  });
+
+  it('contains tier and effort', async () => {
+    const { layout } = await generatePdf(CYPHER_CHARACTER, 'pdf-a4-cypher');
+    expect(hasText(layout, '3')).toBe(true); // tier & effort
+  });
+
+  it('contains skills', async () => {
+    const { layout } = await generatePdf(CYPHER_CHARACTER, 'pdf-a4-cypher');
+    expect(hasText(layout, 'Numenera Lore')).toBe(true);
+    expect(hasText(layout, 'Stealth')).toBe(true);
+    expect(hasText(layout, 'Perception')).toBe(true);
+  });
+
+  it('contains abilities', async () => {
+    const { layout } = await generatePdf(CYPHER_CHARACTER, 'pdf-a4-cypher');
+    expect(hasText(layout, 'Onslaught')).toBe(true);
+    expect(hasText(layout, 'Ward')).toBe(true);
+  });
+
+  it('contains description', async () => {
+    const { layout } = await generatePdf(CYPHER_CHARACTER, 'pdf-a4-cypher');
+    expect(hasText(layout, 'Stealthy Nano')).toBe(true);
+  });
+
+  it('has section headers', async () => {
+    const { layout } = await generatePdf(CYPHER_CHARACTER, 'pdf-a4-cypher');
+    const texts = allTexts(layout);
+    expect(texts).toContain('POOLS');
+    expect(texts).toContain('SKILLS');
+    expect(texts).toContain('CYPHERS');
   });
 });
 

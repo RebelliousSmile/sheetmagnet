@@ -10,6 +10,7 @@ import { getTemplate } from '../src/lib/templates/definitions';
 import '../src/lib/templates/systems';
 import { PdfRenderer } from '../src/lib/export/pdf-renderer';
 import { CITY_OF_MIST_CHARACTER } from '../src/lib/test-fixtures/citymist-character';
+import { CYPHER_CHARACTER } from '../src/lib/test-fixtures/cypher-character';
 import { DND5E_FIGHTER } from '../src/lib/test-fixtures/dnd5e-fighter';
 import { LITM_CHARACTER } from '../src/lib/test-fixtures/litm-character';
 import { PBTA_AW_CHARACTER } from '../src/lib/test-fixtures/pbta-aw-character';
@@ -57,6 +58,11 @@ const jobs = [
     actor: PBTA_MOTW_CHARACTER,
     templateId: 'pdf-a4-pbta',
     filename: 'pbta-motw-elena-a4.pdf',
+  },
+  {
+    actor: CYPHER_CHARACTER,
+    templateId: 'pdf-a4-cypher',
+    filename: 'cypher-kira-a4.pdf',
   },
 ];
 
