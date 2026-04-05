@@ -26,7 +26,7 @@ Sheet Magnet est une PWA (SvelteKit 2 / Svelte 5) qui exporte les fiches de pers
 - Localisation bilingue EN/FR
 - Session store en memoire (zero persistence)
 - PWA manifest + icones + app shell
-- 332 tests Vitest avec couverture 84% branches, 98% statements
+- 335 tests Vitest avec couverture 82% branches, 96% statements
 - CI GitHub Actions (pnpm check)
 - Biome (lint + format), Husky (pre-commit)
 - Pages statiques : features, FAQ, contact
