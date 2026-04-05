@@ -34,7 +34,5 @@ worktrees/
 !.claude/skills/custom/
 .github/*
 !.github/workflows
-CLAUDE.md
 AGENTS.md
-CONTRIBUTING.md
 # </AIDD>
