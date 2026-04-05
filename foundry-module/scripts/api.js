@@ -29,8 +29,10 @@ class SheetMagnetAPI {
   }
 
   corsHeaders() {
+    // Restrict to same LAN — use requesting origin for local network access
+    const origin = window.location.origin;
     return {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Authorization, Content-Type',
       'Access-Control-Max-Age': '86400',

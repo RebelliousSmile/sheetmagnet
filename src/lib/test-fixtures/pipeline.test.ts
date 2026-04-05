@@ -7,7 +7,6 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type { ActorData } from '$lib/connectors/foundry';
 import { PdfRenderer } from '$lib/export/pdf-renderer';
 import {
   getTemplate,
@@ -22,15 +21,11 @@ import { resolve } from '$lib/templates/engine';
 import '$lib/templates/systems';
 import { TEMPLATE_A4_CITY_OF_MIST } from '$lib/templates/systems/city-of-mist';
 import { TEMPLATE_A4_DND5E } from '$lib/templates/systems/dnd5e';
+import { TEMPLATE_A4_LITM } from '$lib/templates/systems/litm';
 import { CITY_OF_MIST_CHARACTER } from './citymist-character';
 import { DND5E_FIGHTER } from './dnd5e-fighter';
-
-/** Resolve template by ID — avoids importing export/index (which pulls Konva) */
-function resolveLayout(templateId: string, actor: ActorData) {
-  const template = getTemplate(templateId);
-  if (!template) throw new Error(`Template not found: ${templateId}`);
-  return resolve(template, { actor });
-}
+import { hasText, resolveLayout } from './helpers';
+import { LITM_CHARACTER } from './litm-character';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // D&D 5e Fighter — Template Resolution
@@ -656,6 +651,63 @@ describe('City of Mist dedicated template — A4', () => {
       (e) => e.type === 'text' && e.content === 'He sees more than he lets on.',
     );
     expect(el).toBeDefined();
+  });
+
+  it('generates valid PDF', async () => {
+    const renderer = new PdfRenderer(layout);
+    const bytes = await renderer.toBytes();
+    const header = new TextDecoder().decode(bytes.slice(0, 4));
+    expect(header).toBe('%PDF');
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Legend in the Mist — registry + template resolution
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('getTemplate() finds LitM template', () => {
+  it('resolves litm template by ID', () => {
+    expect(getTemplate('pdf-a4-litm')).toBe(TEMPLATE_A4_LITM);
+  });
+});
+
+describe('listTemplatesForSystem() includes LitM', () => {
+  it('returns litm template for mist-engine-fvtt', () => {
+    const ids = listTemplatesForSystem('mist-engine-fvtt').map(
+      (t) => t.meta.id,
+    );
+    expect(ids).toContain('pdf-a4-litm');
+    expect(ids).not.toContain('pdf-a4-dnd5e');
+    expect(ids).not.toContain('pdf-a4-city-of-mist');
+  });
+});
+
+describe('Legend in the Mist dedicated template — A4', () => {
+  const layout = resolve(TEMPLATE_A4_LITM, { actor: LITM_CHARACTER });
+
+  it('resolves without error', () => {
+    expect(layout.elements.length).toBeGreaterThan(0);
+    expect(TEMPLATE_A4_LITM.meta.systemId).toBe('mist-engine-fvtt');
+  });
+
+  it('resolves character name and subtitle', () => {
+    expect(hasText(layout, 'Sienna Blackwood')).toBe(true);
+    expect(hasText(layout, 'Mythic street artist')).toBe(true);
+  });
+
+  it('resolves themebooks via filter', () => {
+    expect(hasText(layout, 'The Painted Door')).toBe(true);
+    expect(hasText(layout, 'Street Art Life')).toBe(true);
+  });
+
+  it('resolves floating tags and statuses', () => {
+    expect(hasText(layout, 'Portal Sight')).toBe(true);
+    expect(hasText(layout, 'Disoriented')).toBe(true);
+  });
+
+  it('resolves fellowships', () => {
+    expect(hasText(layout, 'Marco the Forger')).toBe(true);
+    expect(hasText(layout, 'Detective Lin')).toBe(true);
   });
 
   it('generates valid PDF', async () => {

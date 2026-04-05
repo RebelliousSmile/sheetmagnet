@@ -9,8 +9,9 @@ import { resolve } from '../src/lib/templates/engine';
 import { getTemplate } from '../src/lib/templates/definitions';
 import '../src/lib/templates/systems';
 import { PdfRenderer } from '../src/lib/export/pdf-renderer';
-import { DND5E_FIGHTER } from '../src/lib/test-fixtures/dnd5e-fighter';
 import { CITY_OF_MIST_CHARACTER } from '../src/lib/test-fixtures/citymist-character';
+import { DND5E_FIGHTER } from '../src/lib/test-fixtures/dnd5e-fighter';
+import { LITM_CHARACTER } from '../src/lib/test-fixtures/litm-character';
 
 mkdirSync('output', { recursive: true });
 
@@ -34,6 +35,16 @@ const jobs = [
     actor: CITY_OF_MIST_CHARACTER,
     templateId: 'pdf-a4',
     filename: 'citymist-marlowe-generic-a4.pdf',
+  },
+  {
+    actor: LITM_CHARACTER,
+    templateId: 'pdf-a4-litm',
+    filename: 'litm-sienna-a4.pdf',
+  },
+  {
+    actor: LITM_CHARACTER,
+    templateId: 'pdf-a4',
+    filename: 'litm-sienna-generic-a4.pdf',
   },
 ];
 

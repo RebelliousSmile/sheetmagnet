@@ -217,8 +217,14 @@ export class KonvaRenderer {
    */
   async toPNGBlob(pixelRatio = 2): Promise<Blob> {
     const dataUrl = this.toPNG(pixelRatio);
-    const response = await fetch(dataUrl);
-    return response.blob();
+    try {
+      const response = await fetch(dataUrl);
+      return await response.blob();
+    } catch (error) {
+      throw new Error(
+        `Failed to convert PNG data URL to Blob: ${error instanceof Error ? error.message : error}`,
+      );
+    }
   }
 
   /**

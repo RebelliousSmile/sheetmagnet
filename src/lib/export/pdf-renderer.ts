@@ -1,9 +1,17 @@
 /**
  * PDF Renderer
  * Renders resolved layouts to PDF using pdf-lib
+ * Supports text wrapping and multi-page pagination.
  */
 
-import { PDFDocument, type PDFImage, rgb, StandardFonts } from 'pdf-lib';
+import {
+  PDFDocument,
+  type PDFFont,
+  type PDFImage,
+  type PDFPage,
+  rgb,
+  StandardFonts,
+} from 'pdf-lib';
 import { mmToPt } from '$lib/templates/engine';
 import type { ResolvedElement, ResolvedLayout } from '$lib/templates/types';
 
@@ -26,14 +34,46 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   if (!result) return { r: 0, g: 0, b: 0 };
 
   return {
-    // biome-ignore lint/style/noNonNullAssertion: regex is validated above with `if (!result) return` — groups 1-3 are always present when exec succeeds
+    // biome-ignore lint/style/noNonNullAssertion: regex groups 1-3 are guaranteed present after exec succeeds
     r: parseInt(result[1]!, 16) / 255,
-    // biome-ignore lint/style/noNonNullAssertion: regex is validated above with `if (!result) return` — groups 1-3 are always present when exec succeeds
+    // biome-ignore lint/style/noNonNullAssertion: regex groups 1-3 are guaranteed present after exec succeeds
     g: parseInt(result[2]!, 16) / 255,
-    // biome-ignore lint/style/noNonNullAssertion: regex is validated above with `if (!result) return` — groups 1-3 are always present when exec succeeds
+    // biome-ignore lint/style/noNonNullAssertion: regex groups 1-3 are guaranteed present after exec succeeds
     b: parseInt(result[3]!, 16) / 255,
   };
 }
+
+/** Break text into lines that fit within maxWidth */
+function wrapText(
+  text: string,
+  font: PDFFont,
+  fontSize: number,
+  maxWidth: number,
+): string[] {
+  if (!maxWidth || maxWidth <= 0) return [text];
+
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    const candidate = currentLine ? `${currentLine} ${word}` : word;
+    const candidateWidth = font.widthOfTextAtSize(candidate, fontSize);
+
+    if (candidateWidth <= maxWidth) {
+      currentLine = candidate;
+    } else {
+      if (currentLine) lines.push(currentLine);
+      currentLine = word;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+
+  return lines.length > 0 ? lines : [''];
+}
+
+/** Bottom margin in pt — leave space for footer */
+const PAGE_BOTTOM_MARGIN_PT = 20;
 
 export class PdfRenderer {
   private layout: ResolvedLayout;
@@ -43,7 +83,7 @@ export class PdfRenderer {
   }
 
   /**
-   * Generate PDF document
+   * Generate PDF document with text wrapping and pagination
    */
   async generate(): Promise<PDFDocument> {
     const pdfDoc = await PDFDocument.create();
@@ -51,20 +91,22 @@ export class PdfRenderer {
     const widthPt = mmToPt(this.layout.width);
     const heightPt = mmToPt(this.layout.height);
 
-    const page = pdfDoc.addPage([widthPt, heightPt]);
+    let page = pdfDoc.addPage([widthPt, heightPt]);
 
     // Embed fonts
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const fonts = { helvetica, helveticaBold };
 
     for (const element of this.layout.elements) {
-      await this.renderElement(
-        pdfDoc,
-        page,
-        element,
-        { helvetica, helveticaBold },
-        heightPt,
-      );
+      // Check if element would overflow below page bottom
+      const elY = heightPt - mmToPt(element.y);
+      if (elY < PAGE_BOTTOM_MARGIN_PT && element.type !== 'rect') {
+        // Add new page and continue
+        page = pdfDoc.addPage([widthPt, heightPt]);
+      }
+
+      await this.renderElement(pdfDoc, page, element, fonts, heightPt);
     }
 
     return pdfDoc;
@@ -75,12 +117,9 @@ export class PdfRenderer {
    */
   private async renderElement(
     pdfDoc: PDFDocument,
-    page: ReturnType<PDFDocument['addPage']>,
+    page: PDFPage,
     el: ResolvedElement,
-    fonts: {
-      helvetica: Awaited<ReturnType<PDFDocument['embedFont']>>;
-      helveticaBold: Awaited<ReturnType<PDFDocument['embedFont']>>;
-    },
+    fonts: { helvetica: PDFFont; helveticaBold: PDFFont },
     pageHeight: number,
   ): Promise<void> {
     // PDF coordinates start from bottom-left, so flip Y
@@ -94,16 +133,7 @@ export class PdfRenderer {
         this.renderText(page, el, x, y, width, fonts);
         break;
       case 'image':
-        await this.renderImage(
-          pdfDoc,
-          page,
-          el,
-          x,
-          y,
-          width,
-          height,
-          pageHeight,
-        );
+        await this.renderImage(pdfDoc, page, el, x, y, width, height);
         break;
       case 'rect':
         this.renderRect(page, el, x, y, width, height);
@@ -115,15 +145,12 @@ export class PdfRenderer {
   }
 
   private renderText(
-    page: ReturnType<PDFDocument['addPage']>,
+    page: PDFPage,
     el: ResolvedElement,
     x: number,
     y: number,
     width: number | undefined,
-    fonts: {
-      helvetica: Awaited<ReturnType<PDFDocument['embedFont']>>;
-      helveticaBold: Awaited<ReturnType<PDFDocument['embedFont']>>;
-    },
+    fonts: { helvetica: PDFFont; helveticaBold: PDFFont },
   ): void {
     const style = el.style;
     const text = el.content || '';
@@ -133,69 +160,67 @@ export class PdfRenderer {
     const font =
       style.fontWeight === 'bold' ? fonts.helveticaBold : fonts.helvetica;
     const color = hexToRgb(style.color || '#000000');
+    const lineHeight = (style.lineHeight || 1.2) * fontSize;
 
-    // Adjust Y for text baseline (PDF draws from baseline)
-    const textY = y - fontSize;
+    // Wrap text if width is available
+    const lines = width ? wrapText(text, font, fontSize, width) : [text];
 
-    // Handle alignment
-    let textX = x;
-    if (style.align === 'center' && width) {
-      const textWidth = font.widthOfTextAtSize(text, fontSize);
-      textX = x + (width - textWidth) / 2;
-    } else if (style.align === 'right' && width) {
-      const textWidth = font.widthOfTextAtSize(text, fontSize);
-      textX = x + width - textWidth;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i] ?? '';
+      const lineY = y - fontSize - i * lineHeight;
+
+      // Handle alignment per line
+      let lineX = x;
+      if (style.align === 'center' && width) {
+        const lineWidth = font.widthOfTextAtSize(line, fontSize);
+        lineX = x + (width - lineWidth) / 2;
+      } else if (style.align === 'right' && width) {
+        const lineWidth = font.widthOfTextAtSize(line, fontSize);
+        lineX = x + width - lineWidth;
+      }
+
+      page.drawText(line, {
+        x: lineX,
+        y: lineY,
+        size: fontSize,
+        font,
+        color: rgb(color.r, color.g, color.b),
+        opacity: style.opacity ?? 1,
+      });
     }
-
-    page.drawText(text, {
-      x: textX,
-      y: textY,
-      size: fontSize,
-      font,
-      color: rgb(color.r, color.g, color.b),
-      opacity: style.opacity ?? 1,
-    });
   }
 
   private async renderImage(
     pdfDoc: PDFDocument,
-    page: ReturnType<PDFDocument['addPage']>,
+    page: PDFPage,
     el: ResolvedElement,
     x: number,
     y: number,
     width: number | undefined,
     height: number | undefined,
-    _pageHeight: number,
   ): Promise<void> {
     if (!el.imageData || !width || !height) return;
 
     try {
-      // Fetch image
       const response = await fetch(el.imageData);
       const arrayBuffer = await response.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
 
-      // Detect image type by magic bytes, not URL
       let image: PDFImage;
       if (isPng(uint8Array)) {
         image = await pdfDoc.embedPng(uint8Array);
       } else {
-        // pdf-lib supports JPEG; other formats will throw and hit placeholder
         image = await pdfDoc.embedJpg(uint8Array);
       }
 
-      // PDF Y is from bottom, and we need to account for image height
-      const imageY = y - height;
-
       page.drawImage(image, {
         x,
-        y: imageY,
+        y: y - height,
         width,
         height,
         opacity: el.style.opacity ?? 1,
       });
     } catch (error) {
-      // Draw placeholder on error
       console.warn('Failed to embed image:', error);
       page.drawRectangle({
         x,
@@ -208,7 +233,7 @@ export class PdfRenderer {
   }
 
   private renderRect(
-    page: ReturnType<PDFDocument['addPage']>,
+    page: PDFPage,
     el: ResolvedElement,
     x: number,
     y: number,
@@ -216,13 +241,9 @@ export class PdfRenderer {
     height: number | undefined,
   ): void {
     const style = el.style;
-
-    // PDF Y is from bottom
-    const rectY = y - (height || 0);
-
     const options: Parameters<typeof page.drawRectangle>[0] = {
       x,
-      y: rectY,
+      y: y - (height || 0),
       width: width || 0,
       height: height || 0,
       opacity: style.opacity ?? 1,
@@ -243,7 +264,7 @@ export class PdfRenderer {
   }
 
   private renderLine(
-    page: ReturnType<PDFDocument['addPage']>,
+    page: PDFPage,
     el: ResolvedElement,
     x: number,
     y: number,
@@ -264,25 +285,16 @@ export class PdfRenderer {
     });
   }
 
-  /**
-   * Export to PDF bytes
-   */
   async toBytes(): Promise<Uint8Array> {
     const pdfDoc = await this.generate();
     return pdfDoc.save();
   }
 
-  /**
-   * Export to Blob
-   */
   async toBlob(): Promise<Blob> {
     const bytes = await this.toBytes();
     return new Blob([bytes.buffer as ArrayBuffer], { type: 'application/pdf' });
   }
 
-  /**
-   * Export to data URL
-   */
   async toDataUrl(): Promise<string> {
     const bytes = await this.toBytes();
     const base64 = btoa(String.fromCharCode(...bytes));
