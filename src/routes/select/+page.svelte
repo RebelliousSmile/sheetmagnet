@@ -77,33 +77,32 @@ function isSelected(actorId: string): boolean {
 {:else}
   <ul class="list">
     {#each $actorsList as actor (actor.id)}
-      <li 
-        class="list-item"
-        class:selected={isSelected(actor.id)}
-        onclick={() => handleActorClick(actor.id)}
-        role="button"
-        tabindex="0"
-        onkeypress={(e) => e.key === 'Enter' && handleActorClick(actor.id)}
-      >
-        <img 
-          class="avatar" 
-          src={actor.img || '/placeholder-avatar.png'} 
-          alt={actor.name}
-          onerror={(e) => ((e.currentTarget as HTMLImageElement).src = '/placeholder-avatar.png')}
-        />
-        <div style="flex: 1; min-width: 0;">
-          <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            {actor.name}
+      <li class="list-item" class:selected={isSelected(actor.id)}>
+        <button
+          class="list-item-btn"
+          onclick={() => handleActorClick(actor.id)}
+          type="button"
+        >
+          <img
+            class="avatar"
+            src={actor.img || '/placeholder-avatar.png'}
+            alt={actor.name}
+            onerror={(e) => ((e.currentTarget as HTMLImageElement).src = '/placeholder-avatar.png')}
+          />
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              {actor.name}
+            </div>
+            <div style="font-size: 0.875rem; color: var(--color-text-muted);">
+              {actor.type}
+            </div>
           </div>
-          <div style="font-size: 0.875rem; color: var(--color-text-muted);">
-            {actor.type}
+          <div class="checkbox" class:checked={isSelected(actor.id)}>
+            {#if isSelected(actor.id)}
+              ✓
+            {/if}
           </div>
-        </div>
-        <div class="checkbox" class:checked={isSelected(actor.id)}>
-          {#if isSelected(actor.id)}
-            ✓
-          {/if}
-        </div>
+        </button>
       </li>
     {/each}
   </ul>
@@ -143,5 +142,19 @@ function isSelected(actorId: string): boolean {
     background-color: var(--color-primary);
     border-color: var(--color-primary);
     color: white;
+  }
+
+  .list-item-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    color: inherit;
+    font: inherit;
   }
 </style>
