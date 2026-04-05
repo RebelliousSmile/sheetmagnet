@@ -7,6 +7,17 @@ import { PDFDocument, type PDFImage, rgb, StandardFonts } from 'pdf-lib';
 import { mmToPt } from '$lib/templates/engine';
 import type { ResolvedElement, ResolvedLayout } from '$lib/templates/types';
 
+/** Detect PNG by magic bytes: 89 50 4E 47 */
+function isPng(bytes: Uint8Array): boolean {
+  return (
+    bytes.length >= 4 &&
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47
+  );
+}
+
 /**
  * Convert hex color to RGB values (0-1 range)
  */
@@ -164,14 +175,12 @@ export class PdfRenderer {
       const arrayBuffer = await response.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
 
-      // Detect image type and embed
+      // Detect image type by magic bytes, not URL
       let image: PDFImage;
-      if (
-        el.imageData.includes('.png') ||
-        el.imageData.startsWith('data:image/png')
-      ) {
+      if (isPng(uint8Array)) {
         image = await pdfDoc.embedPng(uint8Array);
       } else {
+        // pdf-lib supports JPEG; other formats will throw and hit placeholder
         image = await pdfDoc.embedJpg(uint8Array);
       }
 

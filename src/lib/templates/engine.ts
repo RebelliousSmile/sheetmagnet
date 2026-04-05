@@ -164,8 +164,18 @@ function resolveElement(
 
     case 'repeat': {
       const bindPath = el.bind.replace(/^\{\{|\}\}$/g, '').trim();
-      const items = getByPath(bindPath, data);
-      if (!Array.isArray(items)) return [];
+      const rawItems = getByPath(bindPath, data);
+      if (!Array.isArray(rawItems)) return [];
+
+      // Apply filter: only include items where filter path is truthy
+      let items: unknown[] = rawItems;
+      if (el.filter) {
+        const filterPath = el.filter.replace(/^\{\{|\}\}$/g, '').trim();
+        items = items.filter((item) => {
+          const itemData = { ...data, item };
+          return Boolean(getByPath(filterPath, itemData));
+        });
+      }
 
       const results: ResolvedElement[] = [];
       const max = el.maxItems ?? items.length;

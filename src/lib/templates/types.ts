@@ -73,6 +73,8 @@ export interface RepeatElement extends BaseElement {
   direction: 'vertical' | 'horizontal';
   gap: number;
   maxItems?: number;
+  /** Filter items: only include items where this path is truthy */
+  filter?: string;
   template: RenderElement[];
 }
 

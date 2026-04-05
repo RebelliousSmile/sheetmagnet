@@ -23,8 +23,9 @@ class SheetMagnetAPI {
   validateToken(request) {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader) return false;
-    const [scheme, token] = authHeader.split(' ');
-    return scheme === 'Bearer' && token === this.token;
+    const parts = authHeader.split(' ');
+    if (parts.length !== 2) return false;
+    return parts[0] === 'Bearer' && parts[1] === this.token;
   }
 
   corsHeaders() {
