@@ -15,7 +15,7 @@ import { KonvaRenderer } from '$lib/export/konva-renderer';
 let templateId = $derived($page.url.searchParams.get('template') || 'pdf-a4');
 let isLoading = $state(true);
 let currentActorIndex = $state(0);
-let previewContainer: HTMLDivElement = $state(null!);
+let previewContainer: HTMLDivElement | null = $state(null);
 let renderer: KonvaRenderer | null = null;
 
 onMount(async () => {
