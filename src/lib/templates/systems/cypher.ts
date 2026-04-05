@@ -2,13 +2,15 @@
  * Cypher System Character Sheet — A4 Template
  * Composed from agnostic building blocks.
  *
- * Works for: Numenera, The Strange, Predation, Gods of the Fall, etc.
- *
- * Architecture:
- * - actor.system.pools: {might, speed, intellect} each {value, max, edge}
- * - actor.system.basic: {tier, effort, xp}
- * - actor.system.sentence: {descriptor, type, focus}
- * - actor.items: abilities, skills, cyphers, equipment
+ * Verified paths from mrkwnzl/cyphersystem-foundryvtt template.json:
+ * - Pools: actor.system.pools.{might,speed,intellect}.{value,max,edge}
+ * - Sentence: actor.system.basic.{descriptor,type,focus}
+ * - Tier/Effort: actor.system.basic.{tier,effort,xp}
+ * - Armor: actor.system.combat.armor.ratingTotal
+ * - Damage: actor.system.combat.damageTrack.state
+ * - Recovery: actor.system.combat.recoveries.roll
+ * - Skills: item type "skill", rating at item.system.basic.rating
+ * - Abilities: item type "ability", cost at item.system.basic.cost
  */
 
 import { getTranslation } from '$lib/i18n';
@@ -41,7 +43,7 @@ export const TEMPLATE_A4_CYPHER: TemplateDefinition = {
       ...background(210, 297, '#f7f5f0'),
       ...header(210, {
         subtitle1:
-          '{{actor.system.sentence.descriptor}} {{actor.system.sentence.type}} who {{actor.system.sentence.focus}}',
+          '{{actor.system.basic.descriptor}} {{actor.system.basic.type}} who {{actor.system.basic.focus}}',
         badge: 'Cypher System',
       }),
 
@@ -83,21 +85,29 @@ export const TEMPLATE_A4_CYPHER: TemplateDefinition = {
         { gap: 60 },
       ),
 
-      // ── Tier / Effort / XP ─────────────────────────────────────
+      // ── Tier / Effort / Armor / Damage Track ───────────────────
       ...section(t.details, 105),
       ...statRow(
         [
           { label: 'TIER', binding: '{{actor.system.basic.tier}}' },
           { label: 'EFFORT', binding: '{{actor.system.basic.effort}}' },
           { label: 'XP', binding: '{{actor.system.basic.xp}}' },
-          { label: 'ARMOR', binding: '{{actor.system.combat.armor}}' },
+          {
+            label: 'ARMOR',
+            binding: '{{actor.system.combat.armor.ratingTotal}}',
+          },
+          {
+            label: 'STATUS',
+            binding: '{{actor.system.combat.damageTrack.state}}',
+          },
         ],
         119,
+        { gap: 36 },
       ),
 
       // ── Skills ─────────────────────────────────────────────────
       ...itemList('SKILLS', 138, {
-        filter: '{{item.system.level}}',
+        filter: '{{item.system.basic.rating}}',
         maxItems: 10,
         width: 90,
         fontSize: 7,
@@ -105,7 +115,7 @@ export const TEMPLATE_A4_CYPHER: TemplateDefinition = {
 
       // ── Abilities ──────────────────────────────────────────────
       ...itemList(t.abilities, 138, {
-        filter: '{{item.system.cost}}',
+        filter: '{{item.system.basic.pool}}',
         maxItems: 10,
         x: 110,
         width: 90,
@@ -114,7 +124,7 @@ export const TEMPLATE_A4_CYPHER: TemplateDefinition = {
 
       // ── Cyphers ────────────────────────────────────────────────
       ...itemList('CYPHERS', 215, {
-        filter: '{{item.system.level}}',
+        filter: '{{item.system.basic.level}}',
         maxItems: 6,
         width: 90,
         fontSize: 7,
@@ -122,7 +132,7 @@ export const TEMPLATE_A4_CYPHER: TemplateDefinition = {
 
       // ── Equipment ──────────────────────────────────────────────
       ...itemList(t.inventory, 215, {
-        filter: '{{item.system.type}}',
+        filter: '{{item.system.basic.quantity}}',
         maxItems: 10,
         x: 110,
         width: 90,

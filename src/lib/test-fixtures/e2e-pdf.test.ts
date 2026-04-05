@@ -413,6 +413,16 @@ describe('E2E: Cypher System — dedicated template', () => {
     expect(hasText(layout, 'Ward')).toBe(true);
   });
 
+  it('contains damage track state', async () => {
+    const { layout } = await generatePdf(CYPHER_CHARACTER, 'pdf-a4-cypher');
+    expect(hasText(layout, 'Hale')).toBe(true);
+  });
+
+  it('contains armor rating', async () => {
+    const { layout } = await generatePdf(CYPHER_CHARACTER, 'pdf-a4-cypher');
+    expect(hasText(layout, '1')).toBe(true); // armor ratingTotal
+  });
+
   it('contains description', async () => {
     const { layout } = await generatePdf(CYPHER_CHARACTER, 'pdf-a4-cypher');
     expect(hasText(layout, 'Stealthy Nano')).toBe(true);

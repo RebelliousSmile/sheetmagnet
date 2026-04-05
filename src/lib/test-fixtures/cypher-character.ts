@@ -1,11 +1,16 @@
 /**
- * Cypher System character (Numenera / The Strange / Tokyo:Otherscape alt)
- * Based on Foundry VTT cyphersystem (mrkwnzl/cyphersystem-foundryvtt)
+ * Cypher System character (Numenera)
+ * Based on Foundry VTT cyphersystem (mrkwnzl/cyphersystem-foundryvtt v3.5.0)
  *
- * Cypher System has 3 stat pools (Might, Speed, Intellect), each with:
- *   pool (current), max, edge
- * Plus: tier, effort, recovery rolls, damage track
- * Items: abilities, skills, cyphers, artifacts, equipment, attacks
+ * Real paths verified from template.json:
+ * - Pools: actor.system.pools.{might,speed,intellect}.{value,max,edge}
+ * - Sentence: actor.system.basic.{descriptor,type,focus}
+ * - Tier/effort: actor.system.basic.{tier,effort,xp}
+ * - Recovery: actor.system.combat.recoveries.{roll,oneAction,...}
+ * - Damage: actor.system.combat.damageTrack.state ("Hale"|"Impaired"|"Debilitated")
+ * - Armor: actor.system.combat.armor.ratingTotal
+ * - Skills: item.system.basic.rating ("Practiced"|"Trained"|"Specialized"|"Inability")
+ * - Abilities: item.system.basic.{cost,pool}
  */
 
 import type { ActorData } from '$lib/connectors/foundry';
@@ -20,29 +25,49 @@ export const CYPHER_CHARACTER: ActorData = {
       might: { value: 14, max: 16, edge: 1 },
       speed: { value: 12, max: 14, edge: 1 },
       intellect: { value: 16, max: 18, edge: 2 },
-    },
-    combat: {
-      armor: 1,
-      damage: 4,
+      additional: { value: 0, max: 0, edge: 0 },
     },
     basic: {
       tier: 3,
       effort: 3,
       xp: 2,
+      descriptor: 'Stealthy',
+      type: 'Nano',
+      focus: 'Explores Dark Places',
+      additionalSentence: '',
+      advancement: {
+        stats: true,
+        effort: false,
+        edge: true,
+        skill: false,
+        other: false,
+      },
     },
-    recovery: {
-      roll: '1d6+3',
-      oneAction: false,
-      tenMinutes: false,
-      oneHour: true,
-      tenHours: true,
+    combat: {
+      armor: {
+        ratingTotal: 1,
+        costTotal: 0,
+      },
+      damageTrack: {
+        state: 'Hale',
+        applyImpaired: true,
+        applyDebilitated: true,
+      },
+      recoveries: {
+        roll: '1d6+3',
+        oneAction: false,
+        tenMinutes: false,
+        oneHour: true,
+        tenHours: true,
+      },
     },
-    damageTrack: {
-      state: 'hale',
-      impaired: false,
-      debilitated: false,
+    equipment: {
+      cypherLimit: 3,
     },
     settings: {
+      general: {
+        additionalPool: { active: false, label: '' },
+      },
       equipment: {
         currency: { quantity: 42, name: 'Shins' },
       },
@@ -50,11 +75,6 @@ export const CYPHER_CHARACTER: ActorData = {
     description:
       'A Stealthy Nano who Explores Dark Places. Kira navigates the ruins of the prior worlds seeking lost numenera.',
     notes: 'Currently investigating the Iron Wind anomaly near Qi.',
-    sentence: {
-      descriptor: 'Stealthy',
-      type: 'Nano',
-      focus: 'Explores Dark Places',
-    },
   },
   items: [
     // Abilities
@@ -63,11 +83,13 @@ export const CYPHER_CHARACTER: ActorData = {
       name: 'Onslaught',
       type: 'ability',
       system: {
+        basic: {
+          cost: 1,
+          pool: 'Intellect',
+        },
+        settings: { general: { sorting: 'Ability' } },
         description:
           'You attack a foe using energies that assail either their physical form or their mind. Inflicts 4 points of damage.',
-        level: 'practiced',
-        cost: { value: 1, pool: 'intellect' },
-        tier: 1,
       },
     },
     {
@@ -75,11 +97,10 @@ export const CYPHER_CHARACTER: ActorData = {
       name: 'Ward',
       type: 'ability',
       system: {
+        basic: { cost: 0, pool: 'Pool' },
+        settings: { general: { sorting: 'Ability' } },
         description:
           'You have a shield of energy around you at all times. +1 to Armor.',
-        level: 'practiced',
-        cost: { value: 0, pool: '' },
-        tier: 1,
       },
     },
     {
@@ -87,22 +108,10 @@ export const CYPHER_CHARACTER: ActorData = {
       name: 'Hedge Magic',
       type: 'ability',
       system: {
+        basic: { cost: 1, pool: 'Intellect' },
+        settings: { general: { sorting: 'Ability' } },
         description:
-          'You can perform small tricks: create a small light, move a small object, clean or dirty a small area.',
-        level: 'practiced',
-        cost: { value: 1, pool: 'intellect' },
-        tier: 1,
-      },
-    },
-    {
-      _id: 'ab004',
-      name: 'Stealth Skills',
-      type: 'ability',
-      system: {
-        description: 'You are trained in stealth and sneaking tasks.',
-        level: 'trained',
-        cost: { value: 0, pool: '' },
-        tier: 1,
+          'You can perform small tricks: create a small light, move a small object.',
       },
     },
     // Skills
@@ -111,8 +120,8 @@ export const CYPHER_CHARACTER: ActorData = {
       name: 'Numenera Lore',
       type: 'skill',
       system: {
-        level: 'trained',
-        stat: 'intellect',
+        basic: { rating: 'Trained' },
+        settings: { general: { sorting: 'Skill', initiative: false } },
         description: 'Understanding numenera devices and the prior worlds.',
       },
     },
@@ -121,8 +130,8 @@ export const CYPHER_CHARACTER: ActorData = {
       name: 'Stealth',
       type: 'skill',
       system: {
-        level: 'specialized',
-        stat: 'speed',
+        basic: { rating: 'Specialized' },
+        settings: { general: { sorting: 'Skill', initiative: false } },
         description: 'Moving silently and hiding.',
       },
     },
@@ -131,8 +140,8 @@ export const CYPHER_CHARACTER: ActorData = {
       name: 'Perception',
       type: 'skill',
       system: {
-        level: 'trained',
-        stat: 'intellect',
+        basic: { rating: 'Trained' },
+        settings: { general: { sorting: 'Skill', initiative: false } },
         description: 'Noticing things, searching.',
       },
     },
@@ -141,8 +150,8 @@ export const CYPHER_CHARACTER: ActorData = {
       name: 'Persuasion',
       type: 'skill',
       system: {
-        level: 'inability',
-        stat: 'intellect',
+        basic: { rating: 'Inability' },
+        settings: { general: { sorting: 'Skill', initiative: false } },
         description: 'Social interactions and convincing others.',
       },
     },
@@ -152,11 +161,9 @@ export const CYPHER_CHARACTER: ActorData = {
       name: 'Detonation (Web)',
       type: 'cypher',
       system: {
-        level: 4,
-        form: 'Small metal sphere',
-        effect:
+        basic: { level: 4, identified: true },
+        description:
           'Explodes in a web that immobilizes all within short range for 1 minute.',
-        identified: true,
       },
     },
     {
@@ -164,10 +171,8 @@ export const CYPHER_CHARACTER: ActorData = {
       name: 'Rejuvenator',
       type: 'cypher',
       system: {
-        level: 5,
-        form: 'Injector with blue fluid',
-        effect: 'Restores 1d6+2 points to one stat Pool of your choice.',
-        identified: true,
+        basic: { level: 5, identified: true },
+        description: 'Restores 1d6+2 points to one stat Pool of your choice.',
       },
     },
     // Equipment
@@ -176,10 +181,8 @@ export const CYPHER_CHARACTER: ActorData = {
       name: 'Buzzer',
       type: 'equipment',
       system: {
-        quantity: 1,
+        basic: { quantity: 1 },
         description: 'Razor-edged throwing weapon. Light weapon.',
-        damage: 2,
-        type: 'weapon',
       },
     },
     {
@@ -187,10 +190,8 @@ export const CYPHER_CHARACTER: ActorData = {
       name: 'Clothing (explorer)',
       type: 'equipment',
       system: {
-        quantity: 1,
+        basic: { quantity: 1 },
         description: 'Durable clothing suited for exploration.',
-        type: 'armor',
-        armor: 0,
       },
     },
     {
@@ -198,9 +199,8 @@ export const CYPHER_CHARACTER: ActorData = {
       name: 'Glow globe',
       type: 'equipment',
       system: {
-        quantity: 2,
+        basic: { quantity: 2 },
         description: 'Illuminates an area. Lasts 1 hour.',
-        type: 'gear',
       },
     },
   ],
@@ -219,8 +219,8 @@ export const CYPHER_CHARACTER: ActorData = {
   },
   _meta: {
     systemId: 'cyphersystem',
-    systemVersion: '3.0.0',
-    foundryVersion: '12.331',
+    systemVersion: '3.5.0',
+    foundryVersion: '14.0.0',
     exportedAt: '2026-04-05T14:00:00.000Z',
   },
 };
