@@ -12,6 +12,8 @@ import { PdfRenderer } from '../src/lib/export/pdf-renderer';
 import { CITY_OF_MIST_CHARACTER } from '../src/lib/test-fixtures/citymist-character';
 import { DND5E_FIGHTER } from '../src/lib/test-fixtures/dnd5e-fighter';
 import { LITM_CHARACTER } from '../src/lib/test-fixtures/litm-character';
+import { PBTA_AW_CHARACTER } from '../src/lib/test-fixtures/pbta-aw-character';
+import { PBTA_MOTW_CHARACTER } from '../src/lib/test-fixtures/pbta-motw-character';
 
 mkdirSync('output', { recursive: true });
 
@@ -45,6 +47,16 @@ const jobs = [
     actor: LITM_CHARACTER,
     templateId: 'pdf-a4',
     filename: 'litm-sienna-generic-a4.pdf',
+  },
+  {
+    actor: PBTA_AW_CHARACTER,
+    templateId: 'pdf-a4-pbta',
+    filename: 'pbta-aw-cass-a4.pdf',
+  },
+  {
+    actor: PBTA_MOTW_CHARACTER,
+    templateId: 'pdf-a4-pbta',
+    filename: 'pbta-motw-elena-a4.pdf',
   },
 ];
 

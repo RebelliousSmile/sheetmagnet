@@ -1071,6 +1071,98 @@ describe('resolve() — repeat with filter', () => {
     expect(result.elements).toHaveLength(1);
     expect(result.elements[0]?.content).toBe('Fireball');
   });
+
+  it('iterates over object keys (not just arrays)', () => {
+    const dataWithStats = {
+      actor: {
+        stats: {
+          cool: { value: 1 },
+          hard: { value: 2 },
+          hot: { value: -1 },
+        },
+      },
+    };
+
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 200,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'repeat',
+          x: 0,
+          y: 0,
+          bind: '{{actor.stats}}',
+          direction: 'vertical',
+          gap: 5,
+          template: [
+            {
+              type: 'text',
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 10,
+              content: '{{item.key}}: {{item.value}}',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = resolve(template, dataWithStats);
+    expect(result.elements).toHaveLength(3);
+    expect(result.elements[0]?.content).toBe('cool: 1');
+    expect(result.elements[1]?.content).toBe('hard: 2');
+    expect(result.elements[2]?.content).toBe('hot: -1');
+  });
+
+  it('object iteration injects key field on each item', () => {
+    const data = {
+      actor: {
+        currencies: { gp: 50, sp: 12, cp: 3 },
+      },
+    };
+
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 100,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'repeat',
+          x: 0,
+          y: 0,
+          bind: '{{actor.currencies}}',
+          direction: 'horizontal',
+          gap: 10,
+          template: [
+            {
+              type: 'text',
+              x: 0,
+              y: 0,
+              width: 30,
+              height: 10,
+              content: '{{item.key}}={{item.value}}',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = resolve(template, data);
+    expect(result.elements).toHaveLength(3);
+    expect(result.elements[0]?.content).toBe('gp=50');
+    expect(result.elements[1]?.content).toBe('sp=12');
+    expect(result.elements[2]?.content).toBe('cp=3');
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────────────

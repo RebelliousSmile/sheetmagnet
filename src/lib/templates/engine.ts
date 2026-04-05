@@ -164,8 +164,24 @@ function resolveElement(
 
     case 'repeat': {
       const bindPath = el.bind.replace(/^\{\{|\}\}$/g, '').trim();
-      const rawItems = getByPath(bindPath, data);
-      if (!Array.isArray(rawItems)) return [];
+      const rawValue = getByPath(bindPath, data);
+
+      // Support both arrays and objects (objects become [{key, ...value}])
+      let rawItems: unknown[];
+      if (Array.isArray(rawValue)) {
+        rawItems = rawValue;
+      } else if (rawValue && typeof rawValue === 'object') {
+        rawItems = Object.entries(rawValue as Record<string, unknown>).map(
+          ([key, val]) => ({
+            key,
+            ...(val && typeof val === 'object'
+              ? (val as Record<string, unknown>)
+              : { value: val }),
+          }),
+        );
+      } else {
+        return [];
+      }
 
       // Apply filter: truthy check or exact value match
       let items: unknown[] = rawItems;

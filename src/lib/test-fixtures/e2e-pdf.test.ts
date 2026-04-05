@@ -16,6 +16,8 @@ import {
   validatePdf,
 } from './helpers';
 import { LITM_CHARACTER } from './litm-character';
+import { PBTA_AW_CHARACTER } from './pbta-aw-character';
+import { PBTA_MOTW_CHARACTER } from './pbta-motw-character';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // D&D 5e E2E
@@ -243,6 +245,127 @@ describe('E2E: generic A4 — cross-system', () => {
 // System filtering — all 3
 // ──────────────────────────────────────────────────────────────────────────────
 
+// ──────────────────────────────────────────────────────────────────────────────
+// PbtA: Apocalypse World E2E
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('E2E: Apocalypse World (PbtA) — dedicated template', () => {
+  it('generates valid PDF with character content', async () => {
+    const { layout, bytes } = await generatePdf(
+      PBTA_AW_CHARACTER,
+      'pdf-a4-pbta',
+    );
+    await validatePdf(bytes);
+
+    expect(hasText(layout, 'Cass')).toBe(true);
+    expect(hasText(layout, 'Powered by the Apocalypse')).toBe(true);
+  });
+
+  it('resolves stats via object iteration', async () => {
+    const { layout } = await generatePdf(PBTA_AW_CHARACTER, 'pdf-a4-pbta');
+    const texts = allTexts(layout);
+    // Stat keys become item.key
+    expect(texts).toContain('cool');
+    expect(texts).toContain('hard');
+    expect(texts).toContain('hot');
+    expect(texts).toContain('sharp');
+    expect(texts).toContain('weird');
+    // Stat values
+    expect(texts).toContain('3'); // cool
+    expect(texts).toContain('-1'); // weird
+  });
+
+  it('resolves playbook moves', async () => {
+    const { layout } = await generatePdf(PBTA_AW_CHARACTER, 'pdf-a4-pbta');
+    expect(hasText(layout, 'Dangerous & Sexy')).toBe(true);
+    expect(hasText(layout, 'Ice Cold')).toBe(true);
+  });
+
+  it('resolves basic moves', async () => {
+    const { layout } = await generatePdf(PBTA_AW_CHARACTER, 'pdf-a4-pbta');
+    expect(hasText(layout, 'Act Under Fire')).toBe(true);
+    expect(hasText(layout, 'Go Aggro')).toBe(true);
+    expect(hasText(layout, 'Open Your Brain')).toBe(true);
+  });
+
+  it('resolves harm and experience', async () => {
+    const { layout } = await generatePdf(PBTA_AW_CHARACTER, 'pdf-a4-pbta');
+    expect(hasText(layout, '1 / 6')).toBe(true); // harm
+    expect(hasText(layout, '3 / 5')).toBe(true); // xp
+  });
+
+  it('has all section headers', async () => {
+    const { layout } = await generatePdf(PBTA_AW_CHARACTER, 'pdf-a4-pbta');
+    const texts = allTexts(layout);
+    for (const s of [
+      'STATS',
+      'RESOURCES',
+      'DETAILS',
+      'PLAYBOOK MOVES',
+      'BASIC MOVES',
+    ]) {
+      expect(texts).toContain(s);
+    }
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// PbtA: Monster of the Week E2E
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('E2E: Monster of the Week (PbtA) — dedicated template', () => {
+  it('generates valid PDF with character content', async () => {
+    const { layout, bytes } = await generatePdf(
+      PBTA_MOTW_CHARACTER,
+      'pdf-a4-pbta',
+    );
+    await validatePdf(bytes);
+
+    expect(hasText(layout, 'Elena Torres')).toBe(true);
+  });
+
+  it('resolves MotW stats (different from AW)', async () => {
+    const { layout } = await generatePdf(PBTA_MOTW_CHARACTER, 'pdf-a4-pbta');
+    const texts = allTexts(layout);
+    // MotW has 'charm' and 'tough' instead of AW's 'hard' and 'hot'
+    expect(texts).toContain('charm');
+    expect(texts).toContain('tough');
+    expect(texts).toContain('cool');
+    expect(texts).toContain('sharp');
+    expect(texts).toContain('weird');
+  });
+
+  it('resolves MotW playbook moves', async () => {
+    const { layout } = await generatePdf(PBTA_MOTW_CHARACTER, 'pdf-a4-pbta');
+    expect(hasText(layout, 'The Chosen One')).toBe(true);
+    expect(hasText(layout, 'Devastating')).toBe(true);
+  });
+
+  it('resolves MotW basic moves', async () => {
+    const { layout } = await generatePdf(PBTA_MOTW_CHARACTER, 'pdf-a4-pbta');
+    expect(hasText(layout, 'Kick Some Ass')).toBe(true);
+    expect(hasText(layout, 'Investigate a Mystery')).toBe(true);
+    expect(hasText(layout, 'Use Magic')).toBe(true);
+  });
+
+  it('same template handles both AW and MotW correctly', async () => {
+    const aw = await generatePdf(PBTA_AW_CHARACTER, 'pdf-a4-pbta');
+    const motw = await generatePdf(PBTA_MOTW_CHARACTER, 'pdf-a4-pbta');
+    // Different content = different sizes
+    expect(aw.bytes.length).not.toBe(motw.bytes.length);
+    // AW has 'hard', MotW doesn't
+    expect(hasText(aw.layout, 'hard')).toBe(true);
+    expect(hasText(motw.layout, 'hard')).toBe(false);
+    // MotW has 'charm', AW doesn't
+    expect(hasText(motw.layout, 'charm')).toBe(true);
+    expect(hasText(aw.layout, 'charm')).toBe(false);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// System filtering — all systems
+// ──────────────────────────────────────────────────────────────────────────────
+
 describe('E2E: template filtering for all systems', () => {
   it('LitM gets only litm + generics', async () => {
     const { listTemplatesForSystem } = await import(
@@ -254,6 +377,17 @@ describe('E2E: template filtering for all systems', () => {
     expect(ids).toContain('pdf-a4-litm');
     expect(ids).toContain('pdf-a4');
     expect(ids).not.toContain('pdf-a4-dnd5e');
+  });
+
+  it('PbtA gets only pbta + generics', async () => {
+    const { listTemplatesForSystem } = await import(
+      '$lib/templates/definitions'
+    );
+    const ids = listTemplatesForSystem('pbta').map((t) => t.meta.id);
+    expect(ids).toContain('pdf-a4-pbta');
+    expect(ids).toContain('pdf-a4');
+    expect(ids).not.toContain('pdf-a4-dnd5e');
     expect(ids).not.toContain('pdf-a4-city-of-mist');
+    expect(ids).not.toContain('pdf-a4-litm');
   });
 });
