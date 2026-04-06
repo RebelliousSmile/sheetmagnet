@@ -5,7 +5,7 @@ import { lang } from '$lib/stores/lang';
 const CONTACT_ENDPOINT =
   'https://sheetmagnet-production.up.railway.app/contact';
 
-type Subject = 'bug' | 'feature' | 'system' | 'partnership' | 'other';
+type Subject = 'feature' | 'system' | 'partnership' | 'other';
 type Step = 'subject' | 'details' | 'review' | 'done' | 'error';
 
 let step = $state<Step>('subject');
@@ -20,7 +20,6 @@ let isSubmitting = $state(false);
 let errors = $state<{ name?: string; email?: string; message?: string }>({});
 
 const subjects: { id: Subject; label_fr: string; label_en: string }[] = [
-  { id: 'bug', label_fr: 'Signaler un bug', label_en: 'Report a bug' },
   {
     id: 'feature',
     label_fr: 'Demande de fonctionnalité',
@@ -33,8 +32,8 @@ const subjects: { id: Subject; label_fr: string; label_en: string }[] = [
   },
   {
     id: 'partnership',
-    label_fr: 'Partenariat / presse',
-    label_en: 'Partnership / press',
+    label_fr: 'Question légale',
+    label_en: 'Legal question',
   },
   { id: 'other', label_fr: 'Autre', label_en: 'Other' },
 ];
@@ -76,7 +75,6 @@ const t = $derived(
           "GitHub est le meilleur endroit pour signaler un bug : ça permet de suivre l'avancement, de joindre des captures d'écran et de recevoir une notification quand c'est corrigé. Consultez CONTRIBUTING.md pour savoir quelles informations inclure.",
         bugGithubIssues: 'Ouvrir un ticket GitHub',
         bugContributing: 'Lire CONTRIBUTING.md',
-        bugFormFallback: 'Ou continuer avec le formulaire',
       }
     : {
         title: 'Contact',
@@ -113,7 +111,6 @@ const t = $derived(
           "GitHub is the best place to report a bug: it lets you track progress, attach screenshots, and get notified when it's fixed. Check CONTRIBUTING.md for what information to include.",
         bugGithubIssues: 'Open a GitHub issue',
         bugContributing: 'Read CONTRIBUTING.md',
-        bugFormFallback: 'Or continue with the form',
       },
 );
 
@@ -152,10 +149,7 @@ function validateDetails(): boolean {
 
 function selectSubject(s: Subject) {
   subject = s;
-  if (s !== 'bug') {
-    step = 'details';
-  }
-  // for bug, stay on subject step — bug encart is shown below the grid
+  step = 'details';
 }
 
 function goToReview() {
@@ -240,29 +234,24 @@ function restart() {
           {/each}
         </div>
 
-        {#if subject === 'bug'}
-          <div class="bug-encart">
-            <h3>{t.bugEncartTitle}</h3>
-            <p>{t.bugEncartDesc}</p>
-            <div class="bug-encart-links">
-              <a
-                href="https://github.com/RebelliousSmile/sheetmagnet/issues"
-                target="_blank"
-                rel="noopener"
-                class="btn btn-primary"
-              >{t.bugGithubIssues} ↗</a>
-              <a
-                href="https://github.com/RebelliousSmile/sheetmagnet/blob/main/CONTRIBUTING.md"
-                target="_blank"
-                rel="noopener"
-                class="btn btn-secondary"
-              >{t.bugContributing} ↗</a>
-            </div>
-            <button class="bug-form-fallback" onclick={() => (step = 'details')}>
-              {t.bugFormFallback}
-            </button>
+        <div class="bug-encart">
+          <h3>{t.bugEncartTitle}</h3>
+          <p>{t.bugEncartDesc}</p>
+          <div class="bug-encart-links">
+            <a
+              href="https://github.com/RebelliousSmile/sheetmagnet/issues"
+              target="_blank"
+              rel="noopener"
+              class="btn btn-primary"
+            >{t.bugGithubIssues} ↗</a>
+            <a
+              href="https://github.com/RebelliousSmile/sheetmagnet/blob/main/CONTRIBUTING.md"
+              target="_blank"
+              rel="noopener"
+              class="btn btn-secondary"
+            >{t.bugContributing} ↗</a>
           </div>
-        {/if}
+        </div>
 
       <!-- Step 2: Details -->
       {:else if step === 'details'}
@@ -625,20 +614,6 @@ function restart() {
     gap: var(--space-sm);
     flex-wrap: wrap;
   }
-
-  .bug-form-fallback {
-    background: none;
-    border: none;
-    color: var(--color-text-dim);
-    cursor: pointer;
-    font-size: 0.85rem;
-    padding: 0;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    align-self: flex-start;
-  }
-
-  .bug-form-fallback:hover { color: var(--color-text-muted); }
 
   @media (min-width: 640px) {
     .hero h1 { font-size: 2.5rem; }
