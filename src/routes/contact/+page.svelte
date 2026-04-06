@@ -71,6 +71,12 @@ const t = $derived(
         errEmail: 'Adresse email invalide.',
         errMessage: 'Le message doit contenir au moins 20 caractères.',
         errMessageLong: 'Le message ne peut pas dépasser 2000 caractères.',
+        bugEncartTitle: 'Signaler un bug via GitHub',
+        bugEncartDesc:
+          "GitHub est le meilleur endroit pour signaler un bug : ça permet de suivre l'avancement, de joindre des captures d'écran et de recevoir une notification quand c'est corrigé. Consultez CONTRIBUTING.md pour savoir quelles informations inclure.",
+        bugGithubIssues: 'Ouvrir un ticket GitHub',
+        bugContributing: 'Lire CONTRIBUTING.md',
+        bugFormFallback: 'Ou continuer avec le formulaire',
       }
     : {
         title: 'Contact',
@@ -102,6 +108,12 @@ const t = $derived(
         errEmail: 'Invalid email address.',
         errMessage: 'Message must be at least 20 characters.',
         errMessageLong: 'Message cannot exceed 2000 characters.',
+        bugEncartTitle: 'Report a bug via GitHub',
+        bugEncartDesc:
+          "GitHub is the best place to report a bug: it lets you track progress, attach screenshots, and get notified when it's fixed. Check CONTRIBUTING.md for what information to include.",
+        bugGithubIssues: 'Open a GitHub issue',
+        bugContributing: 'Read CONTRIBUTING.md',
+        bugFormFallback: 'Or continue with the form',
       },
 );
 
@@ -140,7 +152,10 @@ function validateDetails(): boolean {
 
 function selectSubject(s: Subject) {
   subject = s;
-  step = 'details';
+  if (s !== 'bug') {
+    step = 'details';
+  }
+  // for bug, stay on subject step — bug encart is shown below the grid
 }
 
 function goToReview() {
@@ -224,6 +239,30 @@ function restart() {
             </button>
           {/each}
         </div>
+
+        {#if subject === 'bug'}
+          <div class="bug-encart">
+            <h3>{t.bugEncartTitle}</h3>
+            <p>{t.bugEncartDesc}</p>
+            <div class="bug-encart-links">
+              <a
+                href="https://github.com/RebelliousSmile/sheetmagnet/issues"
+                target="_blank"
+                rel="noopener"
+                class="btn btn-primary"
+              >{t.bugGithubIssues} ↗</a>
+              <a
+                href="https://github.com/RebelliousSmile/sheetmagnet/blob/main/CONTRIBUTING.md"
+                target="_blank"
+                rel="noopener"
+                class="btn btn-secondary"
+              >{t.bugContributing} ↗</a>
+            </div>
+            <button class="bug-form-fallback" onclick={() => (step = 'details')}>
+              {t.bugFormFallback}
+            </button>
+          </div>
+        {/if}
 
       <!-- Step 2: Details -->
       {:else if step === 'details'}
@@ -553,6 +592,53 @@ function restart() {
 
   .github-block strong { display: block; margin-bottom: var(--space-xs); }
   .github-block p { font-size: 0.9rem; color: var(--color-text-muted); }
+
+  /* Bug encart */
+  .bug-encart {
+    margin-top: var(--space-xl);
+    padding: var(--space-lg);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-primary);
+    border-left-width: 3px;
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .bug-encart h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .bug-encart p {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  .bug-encart-links {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+
+  .bug-form-fallback {
+    background: none;
+    border: none;
+    color: var(--color-text-dim);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    align-self: flex-start;
+  }
+
+  .bug-form-fallback:hover { color: var(--color-text-muted); }
 
   @media (min-width: 640px) {
     .hero h1 { font-size: 2.5rem; }
