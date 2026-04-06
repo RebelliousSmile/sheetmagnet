@@ -43,6 +43,7 @@ const t = $derived(
     ? {
         title: 'Contact',
         subtitle: 'Sélectionnez le sujet de votre message.',
+        formTitle: 'Poser une question',
         subjectTitle: 'Quel est le sujet ?',
         next: 'Suivant',
         back: '← Retour',
@@ -79,6 +80,7 @@ const t = $derived(
     : {
         title: 'Contact',
         subtitle: 'Select the subject of your message.',
+        formTitle: 'Ask a question',
         subjectTitle: 'What is this about?',
         next: 'Next',
         back: '← Back',
@@ -231,6 +233,7 @@ function restart() {
 
   <section class="section">
     <div class="inner">
+      <h2>{t.formTitle}</h2>
 
       <!-- Step indicator -->
       {#if step !== 'done' && step !== 'error'}
