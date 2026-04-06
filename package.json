@@ -11,7 +11,8 @@
     "test:coverage": "vitest run --coverage",
     "check:fast": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && biome check src/ && vitest run",
     "check": "pnpm check:fast && vitest run --coverage",
-    "prepare": "husky"
+    "prepare": "husky",
+    "deploy:prod": "pnpm build && node scripts/deploy.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.5",
