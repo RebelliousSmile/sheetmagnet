@@ -325,6 +325,48 @@ describe('KonvaRenderer', () => {
       expect(placeholderCall).toBeDefined();
     });
 
+    it('renders placeholder rect on image timeout', async () => {
+      vi.useFakeTimers();
+
+      // Stub Image that never fires onload or onerror
+      vi.stubGlobal(
+        'Image',
+        class {
+          crossOrigin = '';
+          src = '';
+          onload: (() => void) | null = null;
+          onerror: (() => void) | null = null;
+        },
+      );
+
+      const layout = makeLayout([
+        {
+          type: 'image',
+          x: 10,
+          y: 10,
+          width: 50,
+          height: 50,
+          style: defaultStyle,
+          imageData: 'http://example.com/slow.png',
+        },
+      ]);
+
+      const renderer = new KonvaRenderer(layout);
+      const renderPromise = renderer.render(makeContainer());
+
+      // Advance past IMAGE_TIMEOUT_MS (10000ms)
+      await vi.advanceTimersByTimeAsync(11000);
+      await renderPromise;
+
+      const placeholderCall = mockAdd.mock.calls.find(
+        (c) => c[0]._type === 'Rect' && c[0].fill === '#cccccc',
+      );
+      expect(placeholderCall).toBeDefined();
+
+      vi.useRealTimers();
+      vi.stubGlobal('Image', MockImageSuccess);
+    });
+
     it('handles multiple mixed elements', async () => {
       const layout = makeLayout([
         {
@@ -435,6 +477,20 @@ describe('KonvaRenderer', () => {
       const blob = await renderer.toPNGBlob();
       expect(blob).toBeInstanceOf(Blob);
     });
+
+    it('throws when fetch fails', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockRejectedValue(new Error('network error')),
+      );
+
+      const renderer = new KonvaRenderer(makeLayout([]));
+      await renderer.render(makeContainer());
+
+      await expect(renderer.toPNGBlob()).rejects.toThrow(
+        'Failed to convert PNG data URL to Blob',
+      );
+    });
   });
 
   describe('destroy()', () => {
@@ -469,6 +525,21 @@ describe('KonvaRenderer', () => {
 
       expect(mockAdd).toHaveBeenCalledTimes(1);
       expect(mockAdd.mock.calls[0]?.[0]._type).toBe('Line');
+    });
+  });
+
+  describe('static toPNGBlob()', () => {
+    it('renders and exports to blob via static method', async () => {
+      const mockBlob = new Blob(['png-data'], { type: 'image/png' });
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({ blob: () => Promise.resolve(mockBlob) }),
+      );
+
+      const result = await KonvaRenderer.toPNGBlob(makeLayout([]));
+
+      expect(result).toBeInstanceOf(Blob);
+      expect(mockDestroy).toHaveBeenCalled();
     });
   });
 });

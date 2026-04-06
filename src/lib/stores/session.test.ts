@@ -115,6 +115,38 @@ vi.mock('$lib/connectors/foundry', () => {
   };
 });
 
+// Mock RelayConnector
+let relayShouldFail = false;
+
+vi.mock('$lib/connectors/relay', () => ({
+  RelayConnector: class {
+    private _sessionId: string;
+    private _serverInfo: Record<string, unknown> | null = null;
+    constructor(sessionId: string, _token: string) {
+      this._sessionId = sessionId;
+    }
+    get session() {
+      return this._sessionId;
+    }
+    async connect() {
+      if (relayShouldFail) throw new Error('Relay connection failed');
+      const info = {
+        module: 'sheet-magnet',
+        version: '1.0.0',
+        foundry: '12.0.0',
+        system: { id: 'dnd5e', title: 'D&D 5e', version: '3.0.0' },
+        world: 'relay-world',
+      };
+      this._serverInfo = info;
+      return info;
+    }
+    getServerInfo() {
+      return this._serverInfo;
+    }
+    disconnect() {}
+  },
+}));
+
 // Import after mock is set up
 import {
   actorsList,
@@ -122,10 +154,12 @@ import {
   connect,
   connectFromEncoded,
   connection,
+  connectViaRelay,
   deselectActor,
   disconnect,
   fetchActorDetails,
   fetchActors,
+  importActorJson,
   isConnected,
   selectActor,
   selectedActorIds,
@@ -357,5 +391,191 @@ describe('disconnect()', () => {
     expect(get(actorsList)).toEqual([]);
     expect(get(selectedActorIds).size).toBe(0);
     expect(get(selectedActors)).toEqual([]);
+  });
+});
+
+describe('importActorJson()', () => {
+  beforeEach(() => resetStores());
+
+  it('imports a valid actor JSON and updates stores', () => {
+    const actor = {
+      id: 'imported-1',
+      name: 'Bilbo Baggins',
+      type: 'character',
+      img: 'bilbo.png',
+      system: {},
+      items: [],
+      effects: [],
+      flags: {},
+      prototypeToken: {},
+      _meta: {
+        systemId: 'dnd5e',
+        systemVersion: '3.0.0',
+        foundryVersion: '12.0.0',
+        exportedAt: '2026-01-01T00:00:00Z',
+      },
+    };
+
+    const result = importActorJson(JSON.stringify(actor));
+    expect(result).not.toBeNull();
+    expect(result?.name).toBe('Bilbo Baggins');
+
+    const actors = get(actorsList);
+    expect(actors.some((a) => a.id === 'imported-1')).toBe(true);
+
+    expect(get(selectedActorIds).has('imported-1')).toBe(true);
+
+    const conn = get(connection);
+    expect(conn.status).toBe('connected');
+    expect(conn.serverInfo?.module).toBe('import');
+  });
+
+  it('returns null for invalid JSON', () => {
+    const result = importActorJson('{invalid}');
+    expect(result).toBeNull();
+  });
+
+  it('returns null when id is missing', () => {
+    const actor = { name: 'No ID', type: 'character' };
+    const result = importActorJson(JSON.stringify(actor));
+    expect(result).toBeNull();
+  });
+
+  it('returns null when name is missing', () => {
+    const actor = { id: 'some-id', type: 'character' };
+    const result = importActorJson(JSON.stringify(actor));
+    expect(result).toBeNull();
+  });
+
+  it('does not duplicate actors already in the list', () => {
+    const actor = {
+      id: 'dup-1',
+      name: 'Dup Actor',
+      type: 'character',
+      img: '',
+      system: {},
+      items: [],
+      effects: [],
+      flags: {},
+      prototypeToken: {},
+      _meta: {
+        systemId: 'dnd5e',
+        systemVersion: '3.0.0',
+        foundryVersion: '12.0.0',
+        exportedAt: '2026-01-01T00:00:00Z',
+      },
+    };
+    const json = JSON.stringify(actor);
+    importActorJson(json);
+    importActorJson(json);
+
+    const actors = get(actorsList);
+    expect(actors.filter((a) => a.id === 'dup-1')).toHaveLength(1);
+  });
+
+  it('uses actor._meta.systemId in serverInfo', () => {
+    const actor = {
+      id: 'sys-1',
+      name: 'System Actor',
+      type: 'character',
+      img: '',
+      system: {},
+      items: [],
+      effects: [],
+      flags: {},
+      prototypeToken: {},
+      _meta: {
+        systemId: 'pf2e',
+        systemVersion: '5.0.0',
+        foundryVersion: '12.0.0',
+        exportedAt: '2026-01-01T00:00:00Z',
+      },
+    };
+    importActorJson(JSON.stringify(actor));
+    const conn = get(connection);
+    expect(conn.serverInfo?.system.id).toBe('pf2e');
+  });
+
+  it('uses unknown as fallback system id when _meta is absent', () => {
+    const actor = {
+      id: 'no-meta-1',
+      name: 'No Meta',
+      type: 'character',
+      img: '',
+      system: {},
+      items: [],
+      effects: [],
+      flags: {},
+      prototypeToken: {},
+    };
+    importActorJson(JSON.stringify(actor));
+    const conn = get(connection);
+    expect(conn.serverInfo?.system.id).toBe('unknown');
+  });
+});
+
+describe('connectViaRelay()', () => {
+  beforeEach(() => {
+    resetStores();
+    relayShouldFail = false;
+  });
+
+  it('connects successfully via relay and sets status to connected', async () => {
+    const result = await connectViaRelay('relay-session', 'relay-token');
+    expect(result).toBe(true);
+
+    const conn = get(connection);
+    expect(conn.status).toBe('connected');
+    expect(conn.serverInfo?.world).toBe('relay-world');
+    expect(conn.error).toBeNull();
+  });
+
+  it('sets status to error when relay connection fails', async () => {
+    relayShouldFail = true;
+    const result = await connectViaRelay('relay-session', 'relay-token');
+    expect(result).toBe(false);
+
+    const conn = get(connection);
+    expect(conn.status).toBe('error');
+    expect(conn.error).toBeTruthy();
+    relayShouldFail = false;
+  });
+});
+
+describe('fetchActors() error path', () => {
+  beforeEach(() => resetStores());
+
+  it('sets actorsList to empty array when connector throws', async () => {
+    connection.set({
+      connector: {
+        getActors: vi.fn().mockRejectedValue(new Error('fail')),
+        getActor: vi.fn().mockRejectedValue(new Error('fail')),
+      } as unknown as never,
+      serverInfo: null,
+      status: 'connected',
+      error: null,
+    });
+
+    await fetchActors();
+    expect(get(actorsList)).toEqual([]);
+  });
+});
+
+describe('fetchActorDetails() error path', () => {
+  beforeEach(() => resetStores());
+
+  it('returns null when connector throws', async () => {
+    connection.set({
+      connector: {
+        getActors: vi.fn().mockRejectedValue(new Error('fail')),
+        getActor: vi.fn().mockRejectedValue(new Error('fail')),
+      } as unknown as never,
+      serverInfo: null,
+      status: 'connected',
+      error: null,
+    });
+
+    const result = await fetchActorDetails('some-id');
+    expect(result).toBeNull();
   });
 });
