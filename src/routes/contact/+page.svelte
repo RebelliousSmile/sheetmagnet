@@ -205,6 +205,30 @@ function restart() {
     <p class="subtitle">{t.subtitle}</p>
   </section>
 
+  <!-- Bug encart — always visible, above the form -->
+  <section class="section section-alt">
+    <div class="inner">
+      <h2>{t.bugEncartTitle}</h2>
+      <div class="bug-encart">
+        <p>{t.bugEncartDesc}</p>
+        <div class="bug-encart-links">
+          <a
+            href="https://github.com/RebelliousSmile/sheetmagnet/issues"
+            target="_blank"
+            rel="noopener"
+            class="btn btn-primary"
+          >{t.bugGithubIssues} ↗</a>
+          <a
+            href="https://github.com/RebelliousSmile/sheetmagnet/blob/main/CONTRIBUTING.md"
+            target="_blank"
+            rel="noopener"
+            class="btn btn-secondary"
+          >{t.bugContributing} ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="section">
     <div class="inner">
 
@@ -232,25 +256,6 @@ function restart() {
               {$lang === 'fr' ? s.label_fr : s.label_en}
             </button>
           {/each}
-        </div>
-
-        <div class="bug-encart">
-          <h3>{t.bugEncartTitle}</h3>
-          <p>{t.bugEncartDesc}</p>
-          <div class="bug-encart-links">
-            <a
-              href="https://github.com/RebelliousSmile/sheetmagnet/issues"
-              target="_blank"
-              rel="noopener"
-              class="btn btn-primary"
-            >{t.bugGithubIssues} ↗</a>
-            <a
-              href="https://github.com/RebelliousSmile/sheetmagnet/blob/main/CONTRIBUTING.md"
-              target="_blank"
-              rel="noopener"
-              class="btn btn-secondary"
-            >{t.bugContributing} ↗</a>
-          </div>
         </div>
 
       <!-- Step 2: Details -->
@@ -584,22 +589,9 @@ function restart() {
 
   /* Bug encart */
   .bug-encart {
-    margin-top: var(--space-xl);
-    padding: var(--space-lg);
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-primary);
-    border-left-width: 3px;
-    border-radius: var(--radius-md);
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
-  }
-
-  .bug-encart h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--color-text);
-    margin: 0;
   }
 
   .bug-encart p {
