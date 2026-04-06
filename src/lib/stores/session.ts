@@ -173,6 +173,55 @@ export function clearSelection(): void {
   selectedActorIds.set(new Set());
 }
 
+export function importActorJson(json: string): ActorData | null {
+  try {
+    const actor = JSON.parse(json) as ActorData;
+    if (!actor.id || !actor.name) return null;
+
+    // Add to cache and list
+    actorCache.update((cache) => {
+      cache.set(actor.id, actor);
+      return cache;
+    });
+    actorsList.update((list) => {
+      if (list.find((a) => a.id === actor.id)) return list;
+      return [
+        ...list,
+        {
+          id: actor.id,
+          name: actor.name,
+          type: actor.type ?? 'character',
+          img: actor.img ?? '',
+          hasPlayerOwner: false,
+        },
+      ];
+    });
+    selectedActorIds.update((ids) => new Set(ids).add(actor.id));
+
+    // Mark as connected (import mode — no real connector)
+    connection.set({
+      connector: null,
+      serverInfo: {
+        module: 'import',
+        version: '0',
+        foundry: 'import',
+        system: {
+          id: actor._meta?.systemId ?? 'unknown',
+          title: actor._meta?.systemId ?? 'Unknown',
+          version: actor._meta?.systemVersion ?? '0',
+        },
+        world: 'import',
+      },
+      status: 'connected',
+      error: null,
+    });
+
+    return actor;
+  } catch {
+    return null;
+  }
+}
+
 export async function connectViaRelay(
   sessionId: string,
   token: string,
