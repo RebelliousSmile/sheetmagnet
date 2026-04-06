@@ -857,3 +857,611 @@ describe('resolve() — repeat with template elements missing dimensions', () =>
     expect(result.elements[1]?.x).toBe(10);
   });
 });
+
+// ──────────────────────────────────────────────────────────────────────────────
+// repeat filter support
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('resolve() — repeat with filter', () => {
+  const dataWithTypedItems = {
+    actor: {
+      items: [
+        { name: 'Sword', type: 'weapon' },
+        { name: 'Shield', type: 'equipment' },
+        { name: 'Fireball', type: 'spell' },
+        { name: 'Axe', type: 'weapon' },
+      ],
+    },
+  };
+
+  it('filters items by truthy path', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 200,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'repeat',
+          x: 0,
+          y: 0,
+          bind: '{{actor.items}}',
+          filter: '{{item.type}}',
+          direction: 'vertical',
+          gap: 5,
+          template: [
+            {
+              type: 'text',
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 10,
+              content: '{{item.name}}',
+            },
+          ],
+        },
+      ],
+    };
+
+    // All items have truthy type, so all 4 should show
+    const result = resolve(template, dataWithTypedItems);
+    expect(result.elements).toHaveLength(4);
+  });
+
+  it('filters out items with falsy filter path', () => {
+    const dataWithMixed = {
+      actor: {
+        items: [
+          { name: 'Sword', equipped: true },
+          { name: 'Shield', equipped: false },
+          { name: 'Ring', equipped: true },
+          { name: 'Potion', equipped: false },
+        ],
+      },
+    };
+
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 200,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'repeat',
+          x: 0,
+          y: 0,
+          bind: '{{actor.items}}',
+          filter: '{{item.equipped}}',
+          direction: 'vertical',
+          gap: 5,
+          template: [
+            {
+              type: 'text',
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 10,
+              content: '{{item.name}}',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = resolve(template, dataWithMixed);
+    expect(result.elements).toHaveLength(2);
+    expect(result.elements[0]?.content).toBe('Sword');
+    expect(result.elements[1]?.content).toBe('Ring');
+  });
+
+  it('works with no filter (backward compatible)', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 200,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'repeat',
+          x: 0,
+          y: 0,
+          bind: '{{actor.items}}',
+          direction: 'vertical',
+          gap: 5,
+          template: [
+            {
+              type: 'text',
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 10,
+              content: '{{item.name}}',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = resolve(template, dataWithTypedItems);
+    expect(result.elements).toHaveLength(4);
+  });
+
+  it('filters by exact value with filterValue', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 200,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'repeat',
+          x: 0,
+          y: 0,
+          bind: '{{actor.items}}',
+          filter: '{{item.type}}',
+          filterValue: 'weapon',
+          direction: 'vertical',
+          gap: 5,
+          template: [
+            {
+              type: 'text',
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 10,
+              content: '{{item.name}}',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = resolve(template, dataWithTypedItems);
+    expect(result.elements).toHaveLength(2);
+    expect(result.elements[0]?.content).toBe('Sword');
+    expect(result.elements[1]?.content).toBe('Axe');
+  });
+
+  it('filterValue excludes non-matching items', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 200,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'repeat',
+          x: 0,
+          y: 0,
+          bind: '{{actor.items}}',
+          filter: '{{item.type}}',
+          filterValue: 'spell',
+          direction: 'vertical',
+          gap: 5,
+          template: [
+            {
+              type: 'text',
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 10,
+              content: '{{item.name}}',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = resolve(template, dataWithTypedItems);
+    expect(result.elements).toHaveLength(1);
+    expect(result.elements[0]?.content).toBe('Fireball');
+  });
+
+  it('iterates over object keys (not just arrays)', () => {
+    const dataWithStats = {
+      actor: {
+        stats: {
+          cool: { value: 1 },
+          hard: { value: 2 },
+          hot: { value: -1 },
+        },
+      },
+    };
+
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 200,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'repeat',
+          x: 0,
+          y: 0,
+          bind: '{{actor.stats}}',
+          direction: 'vertical',
+          gap: 5,
+          template: [
+            {
+              type: 'text',
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 10,
+              content: '{{item.key}}: {{item.value}}',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = resolve(template, dataWithStats);
+    expect(result.elements).toHaveLength(3);
+    expect(result.elements[0]?.content).toBe('cool: 1');
+    expect(result.elements[1]?.content).toBe('hard: 2');
+    expect(result.elements[2]?.content).toBe('hot: -1');
+  });
+
+  it('object iteration injects key field on each item', () => {
+    const data = {
+      actor: {
+        currencies: { gp: 50, sp: 12, cp: 3 },
+      },
+    };
+
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 100,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'repeat',
+          x: 0,
+          y: 0,
+          bind: '{{actor.currencies}}',
+          direction: 'horizontal',
+          gap: 10,
+          template: [
+            {
+              type: 'text',
+              x: 0,
+              y: 0,
+              width: 30,
+              height: 10,
+              content: '{{item.key}}={{item.value}}',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = resolve(template, data);
+    expect(result.elements).toHaveLength(3);
+    expect(result.elements[0]?.content).toBe('gp=50');
+    expect(result.elements[1]?.content).toBe('sp=12');
+    expect(result.elements[2]?.content).toBe('cp=3');
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// named style resolution via styleName
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('resolve() — named styles via styleName', () => {
+  it('applies named style when styleName matches', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 100,
+        exports: ['pdf'],
+      },
+      styles: {
+        heading: { fontSize: 24, fontWeight: 'bold', color: '#ff0000' },
+      },
+      layout: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'hello',
+          styleName: 'heading',
+        },
+      ],
+    };
+
+    const result = resolve(template, actorData);
+    expect(result.elements[0]?.style.fontSize).toBe(24);
+    expect(result.elements[0]?.style.fontWeight).toBe('bold');
+    expect(result.elements[0]?.style.color).toBe('#ff0000');
+    // Default style should still fill in unspecified properties
+    expect(result.elements[0]?.style.fontFamily).toBe('Helvetica');
+  });
+
+  it('inline style overrides named style', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 100,
+        exports: ['pdf'],
+      },
+      styles: {
+        heading: { fontSize: 24, color: '#ff0000' },
+      },
+      layout: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'hello',
+          styleName: 'heading',
+          style: { color: '#0000ff' },
+        },
+      ],
+    };
+
+    const result = resolve(template, actorData);
+    // Inline color overrides named color
+    expect(result.elements[0]?.style.color).toBe('#0000ff');
+    // Named fontSize still applies
+    expect(result.elements[0]?.style.fontSize).toBe(24);
+  });
+
+  it('ignores unknown styleName gracefully', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 100,
+        exports: ['pdf'],
+      },
+      styles: {},
+      layout: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'hello',
+          styleName: 'nonexistent',
+        },
+      ],
+    };
+
+    const result = resolve(template, actorData);
+    // Should fall back to default style
+    expect(result.elements[0]?.style.fontSize).toBe(10);
+    expect(result.elements[0]?.style.fontFamily).toBe('Helvetica');
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// condition edge cases
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('resolve() — condition edge cases', () => {
+  it('condition with value 0 is falsy', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 100,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'visible?',
+          condition: '{{actor.zero}}',
+        },
+      ],
+    };
+
+    const data = { actor: { zero: 0 } };
+    const result = resolve(template, data);
+    expect(result.elements).toHaveLength(0);
+  });
+
+  it('condition with empty string is falsy', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 100,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'visible?',
+          condition: '{{actor.empty}}',
+        },
+      ],
+    };
+
+    const data = { actor: { empty: '' } };
+    const result = resolve(template, data);
+    expect(result.elements).toHaveLength(0);
+  });
+
+  it('condition with false is falsy', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 100,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'visible?',
+          condition: '{{actor.disabled}}',
+        },
+      ],
+    };
+
+    const data = { actor: { disabled: false } };
+    const result = resolve(template, data);
+    expect(result.elements).toHaveLength(0);
+  });
+
+  it('condition with non-zero number is truthy', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 100,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: 'visible!',
+          condition: '{{actor.count}}',
+        },
+      ],
+    };
+
+    const data = { actor: { count: 42 } };
+    const result = resolve(template, data);
+    expect(result.elements).toHaveLength(1);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// interpolation edge cases
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('resolve() — interpolation edge cases', () => {
+  it('interpolates multiple bindings in one string', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 100,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: '{{actor.name}} ({{actor.type}})',
+        },
+      ],
+    };
+
+    const result = resolve(template, actorData);
+    expect(result.elements[0]?.content).toBe('Gandalf (character)');
+  });
+
+  it('interpolates number 0 as "0", not empty', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 100,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: '{{actor.hp}}',
+        },
+      ],
+    };
+
+    const data = { actor: { hp: 0 } };
+    const result = resolve(template, data);
+    expect(result.elements[0]?.content).toBe('0');
+  });
+
+  it('interpolates boolean false as "false"', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 100,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: '{{actor.alive}}',
+        },
+      ],
+    };
+
+    const data = { actor: { alive: false } };
+    const result = resolve(template, data);
+    expect(result.elements[0]?.content).toBe('false');
+  });
+
+  it('deeply nested missing path returns empty string', () => {
+    const template: TemplateDefinition = {
+      meta: {
+        id: 'test',
+        name: 'Test',
+        width: 100,
+        height: 100,
+        exports: ['pdf'],
+      },
+      layout: [
+        {
+          type: 'text',
+          x: 0,
+          y: 0,
+          content: '{{actor.a.b.c.d.e.f.g}}',
+        },
+      ],
+    };
+
+    const result = resolve(template, actorData);
+    expect(result.elements[0]?.content).toBe('');
+  });
+});

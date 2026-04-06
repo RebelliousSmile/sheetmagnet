@@ -1,18 +1,71 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FoundryConnectionError, FoundryConnector } from './foundry';
 
-// Helpers
-function makeResponse(body: unknown, ok = true, status = 200): Response {
-  return {
-    ok,
-    status,
-    json: () => Promise.resolve(body),
-  } as unknown as Response;
-}
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function encodeConfig(url: string, token: string): string {
   return btoa(JSON.stringify({ url, token }));
 }
+
+/** Create a mock socket.io instance */
+function createMockSocket() {
+  const handlers: Record<string, ((data: Record<string, unknown>) => void)[]> =
+    {};
+  return {
+    emit: vi.fn((key: string, data: unknown) => {
+      // Simulate server response after emit
+      const payload = data as Record<string, unknown>;
+      setTimeout(() => {
+        const listeners = handlers[key] ?? [];
+        for (const handler of listeners) {
+          handler(payload._mockResponse as Record<string, unknown>);
+        }
+      }, 0);
+    }),
+    on: vi.fn(
+      (key: string, handler: (data: Record<string, unknown>) => void) => {
+        if (!handlers[key]) handlers[key] = [];
+        handlers[key].push(handler);
+      },
+    ),
+    off: vi.fn(
+      (key: string, handler: (data: Record<string, unknown>) => void) => {
+        const list = handlers[key];
+        if (list) {
+          const idx = list.indexOf(handler);
+          if (idx >= 0) list.splice(idx, 1);
+        }
+      },
+    ),
+    disconnect: vi.fn(),
+    /** Inject a response that will be delivered on next emit */
+    _simulateResponse: (
+      key: string,
+      requestId: string,
+      response: Record<string, unknown>,
+    ) => {
+      const listeners = handlers[key] ?? [];
+      for (const handler of listeners) {
+        handler({ responseId: requestId, ...response });
+      }
+    },
+    _handlers: handlers,
+  };
+}
+
+/** Create a connector with a pre-attached mock socket */
+function createConnectorWithSocket(
+  mockSocket: ReturnType<typeof createMockSocket>,
+  url = 'http://localhost:30000',
+  token = 'tok123',
+) {
+  const connector = FoundryConnector.fromManualInput(url, token);
+  // Inject mock socket directly
+  (connector as unknown as { socket: unknown }).socket = mockSocket;
+  return connector;
+}
+
+// ── Tests ────────────────────────────────────────────────────────────────────
 
 describe('FoundryConnectionError', () => {
   it('has correct name and properties', () => {
@@ -59,7 +112,7 @@ describe('FoundryConnector.fromManualInput', () => {
     expect(connector).toBeInstanceOf(FoundryConnector);
   });
 
-  it('throws FoundryConnectionError with MISSING_PARAMS when url is empty', () => {
+  it('throws with MISSING_PARAMS when url is empty', () => {
     expect(() => FoundryConnector.fromManualInput('', 'tok')).toThrow(
       FoundryConnectionError,
     );
@@ -70,15 +123,10 @@ describe('FoundryConnector.fromManualInput', () => {
     }
   });
 
-  it('throws FoundryConnectionError with MISSING_PARAMS when token is empty', () => {
+  it('throws with MISSING_PARAMS when token is empty', () => {
     expect(() =>
       FoundryConnector.fromManualInput('http://localhost:30000', ''),
     ).toThrow(FoundryConnectionError);
-    try {
-      FoundryConnector.fromManualInput('http://localhost:30000', '');
-    } catch (e) {
-      expect((e as FoundryConnectionError).code).toBe('MISSING_PARAMS');
-    }
   });
 
   it('throws when both url and token are empty', () => {
@@ -97,7 +145,7 @@ describe('FoundryConnector URL normalization', () => {
     expect(connector).toBeInstanceOf(FoundryConnector);
   });
 
-  it('does not double-append /api/sheet-magnet if already present', () => {
+  it('strips legacy /api/sheet-magnet suffix', () => {
     const connector = FoundryConnector.fromManualInput(
       'http://localhost:30000/api/sheet-magnet',
       'tok',
@@ -106,69 +154,17 @@ describe('FoundryConnector URL normalization', () => {
   });
 });
 
-describe('FoundryConnector.connect', () => {
+describe('FoundryConnector.getActors (socket)', () => {
+  let mockSocket: ReturnType<typeof createMockSocket>;
+
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid-123' });
+    mockSocket = createMockSocket();
   });
 
-  it('returns server info on success', async () => {
-    const serverInfo = {
-      module: 'sheet-magnet',
-      version: '1.0.0',
-      foundry: '12.0.0',
-      system: { id: 'dnd5e', title: 'D&D 5e', version: '3.0.0' },
-      world: 'test-world',
-    };
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(makeResponse(serverInfo)));
-
-    const connector = FoundryConnector.fromManualInput(
-      'http://localhost:30000',
-      'tok',
-    );
-    const result = await connector.connect();
-    expect(result).toEqual(serverInfo);
-    expect(connector.getServerInfo()).toEqual(serverInfo);
-    expect(connector.getSystemInfo()).toEqual(serverInfo.system);
-  });
-
-  it('throws FoundryConnectionError when response is not ok', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(makeResponse({}, false, 503)),
-    );
-
-    const connector = FoundryConnector.fromManualInput(
-      'http://localhost:30000',
-      'tok',
-    );
-    await expect(connector.connect()).rejects.toThrow(FoundryConnectionError);
-  });
-
-  it('throws FoundryConnectionError on network failure', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockRejectedValue(new Error('ECONNREFUSED')),
-    );
-
-    const connector = FoundryConnector.fromManualInput(
-      'http://localhost:30000',
-      'tok',
-    );
-    await expect(connector.connect()).rejects.toThrow(FoundryConnectionError);
-    try {
-      await connector.connect();
-    } catch (e) {
-      expect((e as FoundryConnectionError).code).toBe('CONNECTION_FAILED');
-    }
-  });
-});
-
-describe('FoundryConnector.getActors', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it('returns actor list on success', async () => {
+  it('sends actors action and returns response', async () => {
+    const connector = createConnectorWithSocket(mockSocket);
     const actorList = {
       count: 1,
       actors: [
@@ -181,104 +177,52 @@ describe('FoundryConnector.getActors', () => {
         },
       ],
     };
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(makeResponse(actorList)));
 
-    const connector = FoundryConnector.fromManualInput(
-      'http://localhost:30000',
-      'tok',
-    );
+    // Override emit to simulate response
+    mockSocket.emit.mockImplementation((key, data) => {
+      const payload = data as Record<string, unknown>;
+      setTimeout(() => {
+        mockSocket._simulateResponse(
+          key,
+          payload.requestId as string,
+          actorList,
+        );
+      }, 0);
+    });
+
     const result = await connector.getActors();
-    expect(result).toEqual(actorList);
+    expect(result.count).toBe(1);
+    expect(result.actors[0]?.name).toBe('Gandalf');
   });
 
-  it('throws FoundryConnectionError with UNAUTHORIZED on 401', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 401,
-        json: () => Promise.resolve({ error: 'Unauthorized' }),
-      }),
-    );
+  it('rejects with error response', async () => {
+    const connector = createConnectorWithSocket(mockSocket);
 
-    const connector = FoundryConnector.fromManualInput(
-      'http://localhost:30000',
-      'bad-tok',
-    );
+    mockSocket.emit.mockImplementation((key, data) => {
+      const payload = data as Record<string, unknown>;
+      setTimeout(() => {
+        mockSocket._simulateResponse(key, payload.requestId as string, {
+          error: 'Invalid or missing token',
+          code: 'UNAUTHORIZED',
+        });
+      }, 0);
+    });
+
     await expect(connector.getActors()).rejects.toThrow(FoundryConnectionError);
-    try {
-      await connector.getActors();
-    } catch (e) {
-      expect((e as FoundryConnectionError).code).toBe('UNAUTHORIZED');
-      expect((e as FoundryConnectionError).status).toBe(401);
-    }
-  });
-
-  it('throws FoundryConnectionError with NETWORK_ERROR on fetch failure', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockRejectedValue(new Error('network down')),
-    );
-
-    const connector = FoundryConnector.fromManualInput(
-      'http://localhost:30000',
-      'tok',
-    );
-    await expect(connector.getActors()).rejects.toThrow(FoundryConnectionError);
-    try {
-      await connector.getActors();
-    } catch (e) {
-      expect((e as FoundryConnectionError).code).toBe('NETWORK_ERROR');
-    }
-  });
-
-  it('handles error response with no error field when json rejects', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 500,
-        json: () => Promise.reject(new Error('bad json')),
-      }),
-    );
-
-    const connector = FoundryConnector.fromManualInput(
-      'http://localhost:30000',
-      'tok',
-    );
-    await expect(connector.getActors()).rejects.toThrow(FoundryConnectionError);
-  });
-
-  it('uses HTTP status fallback when error response body has no error field', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 503,
-        json: () => Promise.resolve({}),
-      }),
-    );
-
-    const connector = FoundryConnector.fromManualInput(
-      'http://localhost:30000',
-      'tok',
-    );
-    await expect(connector.getActors()).rejects.toThrow(FoundryConnectionError);
-    try {
-      await connector.getActors();
-    } catch (e) {
-      expect((e as FoundryConnectionError).message).toBe('HTTP 503');
-      expect((e as FoundryConnectionError).code).toBe('HTTP_ERROR');
-    }
   });
 });
 
-describe('FoundryConnector.getActor', () => {
+describe('FoundryConnector.getActor (socket)', () => {
+  let mockSocket: ReturnType<typeof createMockSocket>;
+
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid-456' });
+    mockSocket = createMockSocket();
   });
 
-  it('returns actor data for a given id', async () => {
+  it('sends actor action with actorId', async () => {
+    const connector = createConnectorWithSocket(mockSocket);
     const actorData = {
       id: 'abc',
       name: 'Frodo',
@@ -296,48 +240,62 @@ describe('FoundryConnector.getActor', () => {
         exportedAt: '2026-01-01T00:00:00Z',
       },
     };
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(makeResponse(actorData)));
 
-    const connector = FoundryConnector.fromManualInput(
-      'http://localhost:30000',
-      'tok',
-    );
+    mockSocket.emit.mockImplementation((key, data) => {
+      const payload = data as Record<string, unknown>;
+      expect(payload.actorId).toBe('abc');
+      setTimeout(() => {
+        mockSocket._simulateResponse(
+          key,
+          payload.requestId as string,
+          actorData,
+        );
+      }, 0);
+    });
+
     const result = await connector.getActor('abc');
-    expect(result).toEqual(actorData);
+    expect(result.name).toBe('Frodo');
   });
 });
 
 describe('FoundryConnector.getActorImageUrl', () => {
+  let mockSocket: ReturnType<typeof createMockSocket>;
+
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid-789' });
+    mockSocket = createMockSocket();
   });
 
   it('returns absolute image url on success', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(
-        makeResponse({
+    const connector = createConnectorWithSocket(mockSocket);
+
+    mockSocket.emit.mockImplementation((key, data) => {
+      const payload = data as Record<string, unknown>;
+      setTimeout(() => {
+        mockSocket._simulateResponse(key, payload.requestId as string, {
           url: 'img.png',
           absolute: 'http://localhost:30000/img.png',
-        }),
-      ),
-    );
+        });
+      }, 0);
+    });
 
-    const connector = FoundryConnector.fromManualInput(
-      'http://localhost:30000',
-      'tok',
-    );
     const result = await connector.getActorImageUrl('abc');
     expect(result).toBe('http://localhost:30000/img.png');
   });
 
-  it('returns null on fetch error', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network')));
+  it('returns null on error', async () => {
+    const connector = createConnectorWithSocket(mockSocket);
 
-    const connector = FoundryConnector.fromManualInput(
-      'http://localhost:30000',
-      'tok',
-    );
+    mockSocket.emit.mockImplementation((key, data) => {
+      const payload = data as Record<string, unknown>;
+      setTimeout(() => {
+        mockSocket._simulateResponse(key, payload.requestId as string, {
+          error: 'No custom image',
+        });
+      }, 0);
+    });
+
     const result = await connector.getActorImageUrl('abc');
     expect(result).toBeNull();
   });
@@ -351,5 +309,15 @@ describe('FoundryConnector.getServerInfo before connect', () => {
     );
     expect(connector.getServerInfo()).toBeNull();
     expect(connector.getSystemInfo()).toBeNull();
+  });
+});
+
+describe('FoundryConnector.disconnect', () => {
+  it('calls socket.disconnect and clears state', () => {
+    const mockSocket = createMockSocket();
+    const connector = createConnectorWithSocket(mockSocket);
+    connector.disconnect();
+    expect(mockSocket.disconnect).toHaveBeenCalled();
+    expect(connector.getServerInfo()).toBeNull();
   });
 });

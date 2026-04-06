@@ -1,1 +1,2 @@
+export PATH="/home/tnn/snap/code/current/.local/share/pnpm:$PATH"
 pnpm check:fast

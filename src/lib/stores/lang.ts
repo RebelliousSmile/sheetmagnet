@@ -8,7 +8,7 @@ export const lang = {
   subscribe,
   init() {
     if (typeof localStorage !== 'undefined') {
-      const stored = localStorage.getItem('lang') as Lang;
+      const stored = localStorage.getItem('lang');
       if (stored === 'en' || stored === 'fr') set(stored);
     }
   },

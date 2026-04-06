@@ -10,10 +10,11 @@ import type {
   FoundryServerInfo,
 } from '$lib/connectors/foundry';
 import { FoundryConnector } from '$lib/connectors/foundry';
+import { RelayConnector } from '$lib/connectors/relay';
 
 // Connection state
 interface ConnectionState {
-  connector: FoundryConnector | null;
+  connector: FoundryConnector | RelayConnector | null;
   serverInfo: FoundryServerInfo | null;
   status: 'disconnected' | 'connecting' | 'connected' | 'error';
   error: string | null;
@@ -170,6 +171,80 @@ export function deselectActor(actorId: string): void {
 
 export function clearSelection(): void {
   selectedActorIds.set(new Set());
+}
+
+export function importActorJson(json: string): ActorData | null {
+  try {
+    const actor = JSON.parse(json) as ActorData;
+    if (!actor.id || !actor.name) return null;
+
+    // Add to cache and list
+    actorCache.update((cache) => {
+      cache.set(actor.id, actor);
+      return cache;
+    });
+    actorsList.update((list) => {
+      if (list.find((a) => a.id === actor.id)) return list;
+      return [
+        ...list,
+        {
+          id: actor.id,
+          name: actor.name,
+          type: actor.type ?? 'character',
+          img: actor.img ?? '',
+          hasPlayerOwner: false,
+        },
+      ];
+    });
+    selectedActorIds.update((ids) => new Set(ids).add(actor.id));
+
+    // Mark as connected (import mode — no real connector)
+    connection.set({
+      connector: null,
+      serverInfo: {
+        module: 'import',
+        version: '0',
+        foundry: 'import',
+        system: {
+          id: actor._meta?.systemId ?? 'unknown',
+          title: actor._meta?.systemId ?? 'Unknown',
+          version: actor._meta?.systemVersion ?? '0',
+        },
+        world: 'import',
+      },
+      status: 'connected',
+      error: null,
+    });
+
+    return actor;
+  } catch {
+    return null;
+  }
+}
+
+export async function connectViaRelay(
+  sessionId: string,
+  token: string,
+): Promise<boolean> {
+  connection.update((s) => ({ ...s, status: 'connecting', error: null }));
+
+  try {
+    const connector = new RelayConnector(sessionId, token);
+    const serverInfo = await connector.connect();
+
+    connection.set({ connector, serverInfo, status: 'connected', error: null });
+    return true;
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : 'Relay connection failed';
+    connection.set({
+      connector: null,
+      serverInfo: null,
+      status: 'error',
+      error: message,
+    });
+    return false;
+  }
 }
 
 export function disconnect(): void {

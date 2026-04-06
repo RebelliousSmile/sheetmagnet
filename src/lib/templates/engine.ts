@@ -76,13 +76,15 @@ function checkCondition(
 }
 
 /**
- * Merge styles
+ * Merge styles: default <- named style <- inline style
  */
 function mergeStyles(
+  styleName?: string,
   base?: ElementStyle,
-  _named?: Record<string, ElementStyle>,
+  named?: Record<string, ElementStyle>,
 ): ElementStyle {
-  return { ...DEFAULT_STYLE, ...base };
+  const namedStyle = styleName && named ? named[styleName] : undefined;
+  return { ...DEFAULT_STYLE, ...namedStyle, ...base };
 }
 
 /**
@@ -95,7 +97,7 @@ function resolveElement(
 ): ResolvedElement[] {
   if (!checkCondition(el.condition, data)) return [];
 
-  const style = mergeStyles(el.style, namedStyles);
+  const style = mergeStyles(el.styleName, el.style, namedStyles);
 
   switch (el.type) {
     case 'text':
@@ -162,8 +164,38 @@ function resolveElement(
 
     case 'repeat': {
       const bindPath = el.bind.replace(/^\{\{|\}\}$/g, '').trim();
-      const items = getByPath(bindPath, data);
-      if (!Array.isArray(items)) return [];
+      const rawValue = getByPath(bindPath, data);
+
+      // Support both arrays and objects (objects become [{key, ...value}])
+      let rawItems: unknown[];
+      if (Array.isArray(rawValue)) {
+        rawItems = rawValue;
+      } else if (rawValue && typeof rawValue === 'object') {
+        rawItems = Object.entries(rawValue as Record<string, unknown>).map(
+          ([key, val]) => ({
+            key,
+            ...(val && typeof val === 'object'
+              ? (val as Record<string, unknown>)
+              : { value: val }),
+          }),
+        );
+      } else {
+        return [];
+      }
+
+      // Apply filter: truthy check or exact value match
+      let items: unknown[] = rawItems;
+      if (el.filter) {
+        const filterPath = el.filter.replace(/^\{\{|\}\}$/g, '').trim();
+        items = items.filter((item) => {
+          const itemData = { ...data, item };
+          const val = getByPath(filterPath, itemData);
+          if (el.filterValue !== undefined) {
+            return String(val) === el.filterValue;
+          }
+          return Boolean(val);
+        });
+      }
 
       const results: ResolvedElement[] = [];
       const max = el.maxItems ?? items.length;

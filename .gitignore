@@ -2,6 +2,7 @@ node_modules/
 .svelte-kit/
 build/
 dist/
+output/
 .env
 .env.*
 !.env.example
@@ -34,7 +35,5 @@ worktrees/
 !.claude/skills/custom/
 .github/*
 !.github/workflows
-CLAUDE.md
 AGENTS.md
-CONTRIBUTING.md
 # </AIDD>

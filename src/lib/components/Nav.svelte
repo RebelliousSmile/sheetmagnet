@@ -1,12 +1,7 @@
 <script lang="ts">
-import { onMount } from 'svelte';
 import { lang } from '$lib/stores/lang';
 
 let menuOpen = $state(false);
-
-onMount(() => {
-  lang.init();
-});
 
 function toggleMenu() {
   menuOpen = !menuOpen;
@@ -20,12 +15,14 @@ const t = $derived(
   $lang === 'fr'
     ? {
         features: 'Fonctionnalités',
+        showcase: 'Galerie',
         faq: 'FAQ',
         contact: 'Contact',
         start: 'Commencer',
       }
     : {
         features: 'Features',
+        showcase: 'Showcase',
         faq: 'FAQ',
         contact: 'Contact',
         start: 'Get Started',
@@ -36,7 +33,8 @@ const t = $derived(
 <nav class="nav">
   <div class="nav-inner">
     <a href="/" class="nav-brand" onclick={closeMenu}>
-      🧲 Sheet Magnet
+      <span class="brand-sub">Foundry VTT</span>
+      <span class="brand-name">sheetmag<span class="brand-dot">.net</span></span>
     </a>
 
     <button class="nav-toggle" onclick={toggleMenu} aria-label="Toggle menu">
@@ -45,12 +43,19 @@ const t = $derived(
 
     <ul class="nav-links" class:open={menuOpen}>
       <li><a href="/features" onclick={closeMenu}>{t.features}</a></li>
+      <li><a href="/showcase" onclick={closeMenu}>{t.showcase}</a></li>
       <li><a href="/faq" onclick={closeMenu}>{t.faq}</a></li>
       <li><a href="/contact" onclick={closeMenu}>{t.contact}</a></li>
-      <li>
-        <button class="nav-lang" onclick={() => { lang.toggle(); closeMenu(); }}>
-          {$lang === 'en' ? 'FR' : 'EN'}
-        </button>
+      <li class="nav-lang-switcher">
+        <button
+          class="nav-lang" class:active={$lang === 'en'}
+          onclick={() => { if ($lang !== 'en') { lang.toggle(); closeMenu(); } }}
+        >EN</button>
+        <span class="nav-lang-sep">/</span>
+        <button
+          class="nav-lang" class:active={$lang === 'fr'}
+          onclick={() => { if ($lang !== 'fr') { lang.toggle(); closeMenu(); } }}
+        >FR</button>
       </li>
       <li><a href="/#connect" class="nav-cta" onclick={closeMenu}>{t.start}</a></li>
     </ul>
@@ -64,23 +69,43 @@ const t = $derived(
     z-index: 100;
     background-color: var(--color-bg-secondary);
     border-bottom: 1px solid var(--color-border);
-    padding: var(--space-sm) var(--space-md);
+    padding: var(--space-sm) var(--space-lg);
   }
 
   .nav-inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    max-width: 900px;
+    max-width: 1200px;
     margin: 0 auto;
     position: relative;
   }
 
   .nav-brand {
-    font-size: 1.1rem;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+
+  .brand-name {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 1.15rem;
     font-weight: 700;
     color: var(--color-text);
-    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+
+  .brand-dot {
+    color: var(--color-primary);
+  }
+
+  .brand-sub {
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 500;
   }
 
   .nav-toggle {
@@ -169,20 +194,36 @@ const t = $derived(
     }
   }
 
+  .nav-lang-switcher {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .nav-lang-sep {
+    color: var(--color-border);
+    font-size: 0.8rem;
+    user-select: none;
+  }
+
   .nav-lang {
     background: none;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
+    border: none;
     color: var(--color-text-muted);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
-    padding: var(--space-xs) var(--space-sm);
+    padding: 2px var(--space-xs);
     transition: color 0.15s ease;
+    letter-spacing: 0.04em;
   }
 
   .nav-lang:hover {
+    color: var(--color-text);
+  }
+
+  .nav-lang.active {
     color: var(--color-primary);
-    border-color: var(--color-primary);
+    cursor: default;
   }
 </style>

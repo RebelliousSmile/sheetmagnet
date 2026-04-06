@@ -9,6 +9,7 @@ import type { ResolvedElement, ResolvedLayout } from '$lib/templates/types';
 
 const DEFAULT_DPI = 96;
 const EXPORT_DPI = 300;
+const IMAGE_TIMEOUT_MS = 10_000;
 
 export class KonvaRenderer {
   private stage: Konva.Stage | null = null;
@@ -114,26 +115,14 @@ export class KonvaRenderer {
       const img = new Image();
       img.crossOrigin = 'anonymous';
 
-      img.onload = () => {
-        const konvaImage = new Konva.Image({
-          x,
-          y,
-          image: img,
-          width,
-          height,
-          opacity: el.style.opacity ?? 1,
-        });
-
-        // Apply corner radius if specified
-        // Note: Konva doesn't have built-in radius for images,
-        // would need clipFunc for that - simplified for MVP
-
-        this.layer?.add(konvaImage);
+      const timeout = setTimeout(() => {
+        img.onload = null;
+        img.onerror = null;
+        addPlaceholder();
         resolve();
-      };
+      }, IMAGE_TIMEOUT_MS);
 
-      img.onerror = () => {
-        // Draw placeholder rect on error
+      const addPlaceholder = () => {
         const placeholder = new Konva.Rect({
           x,
           y,
@@ -142,6 +131,25 @@ export class KonvaRenderer {
           fill: '#cccccc',
         });
         this.layer?.add(placeholder);
+      };
+
+      img.onload = () => {
+        clearTimeout(timeout);
+        const konvaImage = new Konva.Image({
+          x,
+          y,
+          image: img,
+          width,
+          height,
+          opacity: el.style.opacity ?? 1,
+        });
+        this.layer?.add(konvaImage);
+        resolve();
+      };
+
+      img.onerror = () => {
+        clearTimeout(timeout);
+        addPlaceholder();
         resolve();
       };
 
@@ -209,8 +217,14 @@ export class KonvaRenderer {
    */
   async toPNGBlob(pixelRatio = 2): Promise<Blob> {
     const dataUrl = this.toPNG(pixelRatio);
-    const response = await fetch(dataUrl);
-    return response.blob();
+    try {
+      const response = await fetch(dataUrl);
+      return await response.blob();
+    } catch (error) {
+      throw new Error(
+        `Failed to convert PNG data URL to Blob: ${error instanceof Error ? error.message : error}`,
+      );
+    }
   }
 
   /**

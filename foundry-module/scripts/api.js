@@ -1,9 +1,21 @@
 /**
- * Sheet Magnet Connector - Foundry VTT Module
+ * Sheet Magnet Connector — Foundry VTT Module
+ *
+ * Uses Foundry's native socket system (game.socket) for communication.
+ * This is the only cross-version (v10-v13) stable API for modules.
+ *
+ * Protocol:
+ *   PWA connects via WebSocket to Foundry's socket server.
+ *   Messages use: game.socket.emit('module.sheet-magnet-connector', payload)
+ *   Responses sent back via the same socket channel.
+ *
+ * For the PWA to connect, it needs the Foundry URL (to open a socket)
+ * and a session token (generated here, shown via QR/dialog).
  */
 
 const MODULE_ID = 'sheet-magnet-connector';
-const API_PREFIX = '/api/sheet-magnet';
+const SOCKET_KEY = `module.${MODULE_ID}`;
+const RELAY_URL = 'wss://sheetmagnet-production.up.railway.app';
 
 class SheetMagnetAPI {
   constructor() {
@@ -20,77 +32,43 @@ class SheetMagnetAPI {
     return this.token;
   }
 
-  validateToken(request) {
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader) return false;
-    const [scheme, token] = authHeader.split(' ');
-    return scheme === 'Bearer' && token === this.token;
+  validateToken(token) {
+    return typeof token === 'string' && token === this.token;
   }
 
-  corsHeaders() {
-    return {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-      'Access-Control-Max-Age': '86400',
-      'Content-Type': 'application/json'
-    };
-  }
-
-  jsonResponse(data, status = 200) {
-    return new Response(JSON.stringify(data), {
-      status,
-      headers: this.corsHeaders()
-    });
-  }
-
-  errorResponse(message, status = 400) {
-    return this.jsonResponse({ error: message }, status);
-  }
+  // ── Handlers ─────────────────────────────────────────────────────
 
   handleInfo() {
-    return this.jsonResponse({
+    return {
       module: MODULE_ID,
       version: game.modules.get(MODULE_ID)?.version ?? '1.0.0',
       foundry: game.version,
       system: {
         id: game.system.id,
         title: game.system.title,
-        version: game.system.version
+        version: game.system.version,
       },
-      world: game.world.id
-    });
+      world: game.world.id,
+    };
   }
 
-  handleActorsList(request) {
-    if (!this.validateToken(request)) {
-      return this.errorResponse('Invalid or missing token', 401);
-    }
-
-    const actors = game.actors.map(actor => ({
+  handleActorsList() {
+    const actors = game.actors.map((actor) => ({
       id: actor.id,
       name: actor.name,
       type: actor.type,
       img: actor.img,
-      hasPlayerOwner: actor.hasPlayerOwner
+      hasPlayerOwner: actor.hasPlayerOwner,
     }));
-
-    return this.jsonResponse({ count: actors.length, actors });
+    return { count: actors.length, actors };
   }
 
-  handleActorDetail(request, actorId) {
-    if (!this.validateToken(request)) {
-      return this.errorResponse('Invalid or missing token', 401);
-    }
-
+  handleActorDetail(actorId) {
     const actor = game.actors.get(actorId);
-    if (!actor) {
-      return this.errorResponse('Actor not found', 404);
-    }
+    if (!actor) return { error: 'Actor not found' };
 
     const data = actor.toObject();
-
-    return this.jsonResponse({
+    return {
       id: actor.id,
       name: actor.name,
       type: actor.type,
@@ -104,28 +82,52 @@ class SheetMagnetAPI {
         systemId: game.system.id,
         systemVersion: game.system.version,
         foundryVersion: game.version,
-        exportedAt: new Date().toISOString()
-      }
-    });
+        exportedAt: new Date().toISOString(),
+      },
+    };
   }
 
-  async handleActorImage(request, actorId) {
-    if (!this.validateToken(request)) {
-      return this.errorResponse('Invalid or missing token', 401);
-    }
-
+  handleActorImage(actorId) {
     const actor = game.actors.get(actorId);
-    if (!actor) return this.errorResponse('Actor not found', 404);
+    if (!actor) return { error: 'Actor not found' };
     if (!actor.img || actor.img === 'icons/svg/mystery-man.svg') {
-      return this.errorResponse('No custom image', 404);
+      return { error: 'No custom image' };
     }
 
-    return this.jsonResponse({
-      url: actor.img,
-      absolute: new URL(actor.img, window.location.origin).href
-    });
+    try {
+      return {
+        url: actor.img,
+        absolute: new URL(actor.img, window.location.origin).href,
+      };
+    } catch {
+      return { error: 'Invalid image URL' };
+    }
+  }
+
+  // ── Socket router ────────────────────────────────────────────────
+
+  handleSocketMessage(payload) {
+    // Validate token (except for 'info' which is public)
+    if (payload.action !== 'info' && !this.validateToken(payload.token)) {
+      return { error: 'Invalid or missing token', code: 'UNAUTHORIZED' };
+    }
+
+    switch (payload.action) {
+      case 'info':
+        return this.handleInfo();
+      case 'actors':
+        return this.handleActorsList();
+      case 'actor':
+        return this.handleActorDetail(payload.actorId);
+      case 'actorImage':
+        return this.handleActorImage(payload.actorId);
+      default:
+        return { error: `Unknown action: ${payload.action}` };
+    }
   }
 }
+
+// ── Module initialization ────────────────────────────────────────────────────
 
 Hooks.once('init', () => {
   console.log(`${MODULE_ID} | Initializing`);
@@ -135,24 +137,87 @@ Hooks.once('ready', () => {
   const api = new SheetMagnetAPI();
   game.modules.get(MODULE_ID).api = api;
 
+  // Register socket listener — responds to PWA requests (direct connection)
+  game.socket.on(SOCKET_KEY, (payload, senderId) => {
+    // Only the GM processes requests (avoids duplicate responses)
+    if (!game.user.isGM) return;
+
+    const response = api.handleSocketMessage(payload);
+    game.socket.emit(SOCKET_KEY, {
+      responseId: payload.requestId,
+      ...response,
+    });
+  });
+
+  // Connect to relay — responds to PWA requests via relay (Forge VTT)
+  const relaySessionId = crypto.randomUUID();
+  api.relaySessionId = relaySessionId;
+  const relayWs = new WebSocket(`${RELAY_URL}?session=${relaySessionId}&role=foundry`);
+
+  relayWs.addEventListener('message', (event) => {
+    if (!game.user.isGM) return;
+    try {
+      const payload = JSON.parse(event.data);
+      if (payload.type === 'peer_connected') return; // system message
+      const response = api.handleSocketMessage(payload);
+      relayWs.send(JSON.stringify({ responseId: payload.requestId, ...response }));
+    } catch (e) {
+      console.error(`${MODULE_ID} | Relay error:`, e);
+    }
+  });
+
+  relayWs.addEventListener('open', () => {
+    console.log(`${MODULE_ID} | Relay connected — session: ${relaySessionId}`);
+  });
+
+  relayWs.addEventListener('error', () => {
+    console.warn(`${MODULE_ID} | Relay unavailable`);
+  });
+
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const host = window.location.hostname;
-  const port = window.location.port || '30000';
-  const connectionUrl = `http://${host}:${port}${API_PREFIX}`;
-  
-  console.log(`${MODULE_ID} | API: ${connectionUrl}`);
+  const port = window.location.port;
+  const connectionUrl = port ? `${protocol}//${host}:${port}` : `${protocol}//${host}`;
+
+  console.log(`${MODULE_ID} | Socket: ${SOCKET_KEY}`);
   console.log(`${MODULE_ID} | Token: ${api.token}`);
 
-  Hooks.on('renderActorDirectory', (app, html) => {
-    const button = $(`<button class="sheet-magnet-connect" title="Sheet Magnet">
-      <i class="fas fa-qrcode"></i> Sheet Magnet
-    </button>`);
-    
-    button.on('click', () => {
+  // Add button to Actors Directory (supports Foundry v10-v14)
+  const injectButton = (html) => {
+    const root = html instanceof HTMLElement ? html : html[0];
+    if (!root) return;
+    // Avoid duplicate buttons
+    if (root.querySelector('.sheet-magnet-connect')) return;
+
+    const button = document.createElement('button');
+    button.className = 'sheet-magnet-connect';
+    button.title = 'Sheet Magnet';
+    button.innerHTML = '<i class="fas fa-qrcode"></i> Sheet Magnet';
+    button.addEventListener('click', () => {
       new SheetMagnetConnectionDialog(api, connectionUrl).render(true);
     });
-    
-    html.find('.directory-header .action-buttons').append(button);
-  });
+
+    // v14: header-actions, v10-v13: .directory-header .action-buttons
+    const target =
+      root.querySelector('.directory-header .action-buttons') ||
+      root.querySelector('.header-actions') ||
+      root.querySelector('.action-buttons') ||
+      root.querySelector('header');
+
+    if (target) {
+      target.appendChild(button);
+    } else {
+      console.warn(`${MODULE_ID} | Could not find action-buttons container`);
+    }
+  };
+
+  // Hook pour les re-renders futurs
+  Hooks.on('renderActorDirectory', (app, html) => injectButton(html));
+
+  // Injection immédiate si le panneau est déjà rendu (Foundry v14)
+  if (ui.actors?.element) {
+    injectButton(ui.actors.element);
+  }
 });
 
 class SheetMagnetConnectionDialog extends Application {
@@ -163,25 +228,30 @@ class SheetMagnetConnectionDialog extends Application {
   }
 
   static get defaultOptions() {
-    return mergeObject(super.defaultOptions, {
+    return Object.assign({}, super.defaultOptions, {
       id: 'sheet-magnet-connection',
       title: 'Sheet Magnet Connection',
       template: `modules/${MODULE_ID}/templates/connection-dialog.html`,
       width: 400,
-      height: 'auto'
+      height: 'auto',
     });
   }
 
   getData() {
-    const connectData = { url: this.connectionUrl, token: this.api.token };
+    const connectData = {
+      url: this.connectionUrl,
+      token: this.api.token,
+      socketKey: SOCKET_KEY,
+    };
     const encoded = btoa(JSON.stringify(connectData));
     const deepLink = `https://sheet-magnet.app/connect?data=${encoded}`;
 
     return {
       connectionUrl: this.connectionUrl,
       token: this.api.token,
+      relaySessionId: this.api.relaySessionId ?? null,
       deepLink,
-      qrData: deepLink
+      qrData: deepLink,
     };
   }
 
@@ -201,6 +271,16 @@ class SheetMagnetConnectionDialog extends Application {
     html.find('.copy-url').on('click', async () => {
       await navigator.clipboard.writeText(this.connectionUrl);
       ui.notifications.info('URL copied');
+    });
+
+    html.find('.copy-relay-session').on('click', async () => {
+      await navigator.clipboard.writeText(this.api.relaySessionId ?? '');
+      ui.notifications.info('Session code copied');
+    });
+
+    html.find('.copy-token-relay').on('click', async () => {
+      await navigator.clipboard.writeText(this.api.token);
+      ui.notifications.info('Token copied');
     });
   }
 }

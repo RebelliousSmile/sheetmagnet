@@ -80,8 +80,16 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  padding: var(--space-md);
-  padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom));
+}
+
+/* Centered content container for app screens (select, export, etc.) */
+.app-screen {
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-md);
+  padding-bottom: calc(var(--space-lg) + env(safe-area-inset-bottom));
+  flex: 1;
 }
 
 /* Typography */
@@ -316,9 +324,7 @@ label {
 
 /* Tablet+ breakpoint */
 @media (min-width: 768px) {
-  .app {
-    max-width: 600px;
-    margin: 0 auto;
+  .app-screen {
     padding: var(--space-xl);
   }
 

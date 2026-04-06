@@ -9,6 +9,8 @@ export interface TemplateMeta {
   width: number; // mm
   height: number; // mm
   exports: ('pdf' | 'png')[];
+  /** Foundry system ID (e.g. 'dnd5e', 'city-of-mist'). Undefined = generic. */
+  systemId?: string;
   printful?: string | null;
 }
 
@@ -34,6 +36,7 @@ export interface BaseElement {
   width?: number;
   height?: number;
   style?: ElementStyle;
+  styleName?: string;
   condition?: string;
 }
 
@@ -72,6 +75,10 @@ export interface RepeatElement extends BaseElement {
   direction: 'vertical' | 'horizontal';
   gap: number;
   maxItems?: number;
+  /** Filter items: only include items where this path is truthy */
+  filter?: string;
+  /** Filter items: only include items where filter path equals this value */
+  filterValue?: string;
   template: RenderElement[];
 }
 

@@ -1,0 +1,48 @@
+name: Release Foundry Module
+
+on:
+  push:
+    tags:
+      - 'foundry-v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#foundry-v}" >> $GITHUB_OUTPUT
+
+      - name: Update version in module.json
+        run: |
+          jq --arg v "${{ steps.version.outputs.version }}" '.version = $v' \
+            foundry-module/module.json > /tmp/module.json
+          mv /tmp/module.json foundry-module/module.json
+
+      - name: Create zip
+        run: |
+          cd foundry-module
+          zip -r ../sheet-magnet-connector.zip .
+
+      - name: Push to sheet-magnet-connector repo and create release
+        env:
+          GH_TOKEN: ${{ secrets.FOUNDRY_MODULE_TOKEN }}
+        run: |
+          git clone https://x-access-token:${GH_TOKEN}@github.com/RebelliousSmile/sheet-magnet-connector.git /tmp/connector
+          cp -r foundry-module/. /tmp/connector/
+          cd /tmp/connector
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: release v${{ steps.version.outputs.version }}"
+          git push origin main
+          gh release create "v${{ steps.version.outputs.version }}" \
+            ../sheet-magnet-connector.zip \
+            --title "v${{ steps.version.outputs.version }}" \
+            --notes "Released from sheetmagnet monorepo tag foundry-v${{ steps.version.outputs.version }}" \
+            --repo RebelliousSmile/sheet-magnet-connector

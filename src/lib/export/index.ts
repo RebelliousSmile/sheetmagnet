@@ -57,7 +57,8 @@ export async function exportActor(
   }
 
   const layout = resolve(template, { actor });
-  const safeName = actor.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  const safeName =
+    actor.name.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'character';
 
   if (options.format === 'pdf') {
     const renderer = new PdfRenderer(layout);

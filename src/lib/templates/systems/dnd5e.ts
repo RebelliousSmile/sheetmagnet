@@ -1,0 +1,125 @@
+/**
+ * D&D 5e Character Sheet — A4 Template
+ * Composed from agnostic building blocks.
+ */
+
+import { getTranslation } from '$lib/i18n';
+import {
+  abilityRow,
+  BASE_STYLES,
+  background,
+  footer,
+  header,
+  itemList,
+  section,
+  statRow,
+} from '../blocks';
+import { registerTemplate } from '../definitions';
+import type { TemplateDefinition } from '../types';
+
+const p = () => getTranslation().pdf;
+
+const abilities = [
+  { label: 'STR', binding: '{{actor.system.abilities.str.value}}' },
+  { label: 'DEX', binding: '{{actor.system.abilities.dex.value}}' },
+  { label: 'CON', binding: '{{actor.system.abilities.con.value}}' },
+  { label: 'INT', binding: '{{actor.system.abilities.int.value}}' },
+  { label: 'WIS', binding: '{{actor.system.abilities.wis.value}}' },
+  { label: 'CHA', binding: '{{actor.system.abilities.cha.value}}' },
+];
+
+export const TEMPLATE_A4_DND5E: TemplateDefinition = {
+  meta: {
+    id: 'pdf-a4-dnd5e',
+    name: 'D&D 5e Character Sheet',
+    description: 'Full character sheet for D&D 5th Edition',
+    systemId: 'dnd5e',
+    width: 210,
+    height: 297,
+    exports: ['pdf', 'png'],
+  },
+  styles: BASE_STYLES,
+  get layout() {
+    const t = p();
+    return [
+      ...background(210, 297),
+      ...header(210, {
+        subtitle1: '{{actor.system.details.race}}',
+        subtitle2: '{{actor.system.details.alignment}}',
+        badge: 'Level {{actor.system.details.level}}',
+      }),
+
+      ...section(t.abilityScores, 58),
+      ...abilityRow(abilities, 72),
+
+      ...section(t.combat, 100),
+      ...statRow(
+        [
+          {
+            label: 'HIT POINTS',
+            binding:
+              '{{actor.system.attributes.hp.value}} / {{actor.system.attributes.hp.max}}',
+          },
+          {
+            label: 'ARMOR CLASS',
+            binding: '{{actor.system.attributes.ac.flat}}',
+          },
+          {
+            label: 'SPEED',
+            binding: '{{actor.system.attributes.movement.walk}} ft',
+          },
+          {
+            label: 'PROFICIENCY',
+            binding: '+{{actor.system.attributes.prof}}',
+          },
+        ],
+        112,
+      ),
+      ...statRow(
+        [
+          {
+            label: 'DEATH SAVES',
+            binding:
+              '{{actor.system.attributes.death.success}} / {{actor.system.attributes.death.failure}}',
+          },
+        ],
+        128,
+      ),
+      {
+        type: 'text' as const,
+        x: 60,
+        y: 128,
+        content: t.inspired,
+        condition: '{{actor.system.attributes.inspiration}}',
+        style: { fontSize: 8, fontWeight: 'bold' as const, color: '#c4a35a' },
+      },
+
+      ...section(t.details, 145),
+      ...statRow(
+        [
+          {
+            label: 'BACKGROUND',
+            binding: '{{actor.system.details.background}}',
+          },
+          { label: 'XP', binding: '{{actor.system.details.xp.value}}' },
+        ],
+        157,
+      ),
+      ...statRow(
+        [
+          { label: 'PP', binding: '{{actor.system.currency.pp}}' },
+          { label: 'GP', binding: '{{actor.system.currency.gp}}' },
+          { label: 'SP', binding: '{{actor.system.currency.sp}}' },
+          { label: 'CP', binding: '{{actor.system.currency.cp}}' },
+        ],
+        157,
+        { startX: 130, gap: 18 },
+      ),
+
+      ...itemList(t.inventoryFeatures, 175, { maxItems: 25 }),
+      ...footer(`D&D 5e — ${t.footer}`, 297),
+    ];
+  },
+};
+
+registerTemplate(TEMPLATE_A4_DND5E);

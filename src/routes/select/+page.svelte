@@ -1,6 +1,7 @@
 <script lang="ts">
 import { goto } from '$app/navigation';
 import { onMount } from 'svelte';
+import { t } from '$lib/i18n';
 import {
   connection,
   isConnected,
@@ -45,7 +46,7 @@ function isSelected(actorId: string): boolean {
 </script>
 
 <div class="page-header">
-  <h1>Select Characters</h1>
+  <h1>{$t.select.title}</h1>
   {#if $connection.serverInfo}
     <p>
       <span class="status status-success">
@@ -69,41 +70,40 @@ function isSelected(actorId: string): boolean {
   </div>
 {:else if $actorsList.length === 0}
   <div class="card" style="text-align: center;">
-    <p>No characters found in this world.</p>
+    <p>{$t.select.noCharacters}</p>
     <button class="btn btn-secondary" onclick={handleDisconnect} style="margin-top: var(--space-md);">
-      Disconnect
+      {$t.select.disconnect}
     </button>
   </div>
 {:else}
   <ul class="list">
     {#each $actorsList as actor (actor.id)}
-      <li 
-        class="list-item"
-        class:selected={isSelected(actor.id)}
-        onclick={() => handleActorClick(actor.id)}
-        role="button"
-        tabindex="0"
-        onkeypress={(e) => e.key === 'Enter' && handleActorClick(actor.id)}
-      >
-        <img 
-          class="avatar" 
-          src={actor.img || '/placeholder-avatar.png'} 
-          alt={actor.name}
-          onerror={(e) => ((e.currentTarget as HTMLImageElement).src = '/placeholder-avatar.png')}
-        />
-        <div style="flex: 1; min-width: 0;">
-          <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            {actor.name}
+      <li class="list-item" class:selected={isSelected(actor.id)}>
+        <button
+          class="list-item-btn"
+          onclick={() => handleActorClick(actor.id)}
+          type="button"
+        >
+          <img
+            class="avatar"
+            src={actor.img || '/placeholder-avatar.png'}
+            alt={actor.name}
+            onerror={(e) => ((e.currentTarget as HTMLImageElement).src = '/placeholder-avatar.png')}
+          />
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              {actor.name}
+            </div>
+            <div style="font-size: 0.875rem; color: var(--color-text-muted);">
+              {actor.type}
+            </div>
           </div>
-          <div style="font-size: 0.875rem; color: var(--color-text-muted);">
-            {actor.type}
+          <div class="checkbox" class:checked={isSelected(actor.id)}>
+            {#if isSelected(actor.id)}
+              ✓
+            {/if}
           </div>
-        </div>
-        <div class="checkbox" class:checked={isSelected(actor.id)}>
-          {#if isSelected(actor.id)}
-            ✓
-          {/if}
-        </div>
+        </button>
       </li>
     {/each}
   </ul>
@@ -112,7 +112,7 @@ function isSelected(actorId: string): boolean {
 
   <div style="display: flex; gap: var(--space-md); margin-top: var(--space-lg);">
     <button class="btn btn-secondary" onclick={handleDisconnect}>
-      Disconnect
+      {$t.select.disconnect}
     </button>
     <button 
       class="btn btn-primary" 
@@ -120,7 +120,7 @@ function isSelected(actorId: string): boolean {
       onclick={handleContinue}
       disabled={$selectedActorIds.size === 0}
     >
-      Continue ({$selectedActorIds.size})
+      {$t.select.continue} ({$selectedActorIds.size})
     </button>
   </div>
 {/if}
@@ -143,5 +143,19 @@ function isSelected(actorId: string): boolean {
     background-color: var(--color-primary);
     border-color: var(--color-primary);
     color: white;
+  }
+
+  .list-item-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    color: inherit;
+    font: inherit;
   }
 </style>
