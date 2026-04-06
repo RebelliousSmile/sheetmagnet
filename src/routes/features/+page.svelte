@@ -4,149 +4,159 @@ import { lang } from '$lib/stores/lang';
 
 const en = {
   title: 'Features',
-  subtitle: 'Everything you need to bring your character sheets to life.',
+  subtitle: 'Everything sheetmag.net does for you at the table.',
+
+  featuresTitle: 'What you can do',
   features: [
     {
-      icon: '🔒',
-      title: 'Zero Storage',
-      desc: 'Your data stays on your network. Nothing is ever sent to or stored on external servers — complete privacy by design.',
+      title: 'Connect to Foundry in seconds',
+      desc: "Open the Sheet Magnet panel in Foundry VTT, copy the session code, and paste it here. No account, no configuration — you're in.",
     },
     {
-      icon: '📄',
-      title: 'Multi-Format Export',
-      desc: 'Export to PDF (A3, A4, A5, A6) or PNG poker card format. Choose the size that fits your table or print service.',
+      title: 'Browse and pick your characters',
+      desc: 'All actors visible to you in Foundry appear in the list. Select one or several and export them together.',
     },
     {
-      icon: '📡',
-      title: 'QR Code Connection',
-      desc: 'Open Foundry, click the Sheet Magnet button, and scan the QR code with your phone. Connected in seconds.',
+      title: 'Preview before you export',
+      desc: 'See a live render of your sheet before downloading. Check that everything looks right — then export.',
     },
     {
-      icon: '📱',
-      title: 'Mobile-First PWA',
-      desc: 'Designed for phones and tablets from the ground up. Install it as a PWA and use it anywhere, even offline.',
+      title: 'Works on any device',
+      desc: "Phone, tablet, laptop — the interface adapts. No app to install: open the URL and you're ready.",
     },
     {
-      icon: '🎲',
-      title: 'Any Game System',
-      desc: 'Works with every Foundry VTT game system. Select one or more actors and export them instantly.',
+      title: 'For players without GM access',
+      desc: 'Not on the server? Ask your GM to export your sheet as JSON via the Sheet Magnet button, then import it here directly.',
     },
     {
-      icon: '🖼️',
-      title: 'Template Engine',
-      desc: 'A declarative layout engine binds actor data to card templates. Fully typed with TypeScript for reliability.',
-    },
-    {
-      icon: '🖨️',
-      title: 'Print Services',
-      desc: 'Order physical prints via Printful — poker cards, stickers, and more. (Coming soon)',
-    },
-    {
-      icon: '👁️',
-      title: 'Live Preview',
-      desc: 'Preview your export in real time with the Konva canvas renderer before downloading or ordering prints.',
+      title: 'Your data stays on your network',
+      desc: 'Nothing is stored on external servers. The connection goes directly from your browser to your Foundry instance.',
     },
   ],
-  formats: 'Supported Export Formats',
-  formatsTable: [
-    ['Format', 'Size', 'Use Case'],
-    ['PDF A3', '297×420 mm', 'Poster'],
-    ['PDF A4', '210×297 mm', 'Standard sheet'],
-    ['PDF A5', '148×210 mm', 'Booklet'],
-    ['PDF A6', '105×148 mm', 'Pocket sheet'],
-    ['PNG Card', '63×88 mm', 'Poker card (Printful)'],
-  ],
-  roadmap: 'Roadmap',
-  roadmapItems: [
-    { done: true, text: 'Foundry VTT connector' },
-    { done: true, text: 'PDF export (A3–A6)' },
-    { done: true, text: 'PNG export' },
-    { done: true, text: 'Poker card format' },
-    { done: true, text: 'Template engine with bindings' },
-    { done: true, text: 'Konva live preview' },
-    { done: true, text: 'QR code scanner for mobile' },
+
+  formatsTitle: 'Print formats',
+  formatsSubtitle: 'Choose the format that fits your table and your printer.',
+  formats: [
     {
-      done: false,
-      text: 'System-specific templates (City of Mist, D&D 5e, …)',
+      id: 'a4',
+      name: 'PDF A4',
+      size: '210 × 297 mm',
+      ideal: 'Home printing',
+      desc: 'The classic character sheet. Print it at home or at your local print shop. Perfect for keeping in a binder or slipping into a page protector.',
     },
-    { done: false, text: 'Printful API integration' },
-    { done: false, text: 'More print formats (stickers, pencil wraps, mugs)' },
+    {
+      id: 'a5',
+      name: 'PDF A5',
+      size: '148 × 210 mm',
+      ideal: 'Booklet / notebook',
+      desc: 'Half the size of A4. Fits neatly into a campaign notebook or a small gaming folder. Easier to handle at a crowded table.',
+    },
+    {
+      id: 'a6',
+      name: 'PDF A6',
+      size: '105 × 148 mm',
+      ideal: 'Pocket reference',
+      desc: 'Postcard-sized. Ideal as a quick-reference card for key stats: slip it in your pocket or prop it up next to your dice.',
+    },
+    {
+      id: 'a3',
+      name: 'PDF A3',
+      size: '297 × 420 mm',
+      ideal: 'Display / GM screen',
+      desc: 'Large format for when you want every detail visible at a glance. Great as a poster on the table or pinned to a GM screen.',
+    },
+    {
+      id: 'card',
+      name: 'PNG Card',
+      size: '63 × 88 mm',
+      ideal: 'Poker card / Printful',
+      desc: 'Standard poker card dimensions. Order physical prints via Printful — sleeve them, shuffle them, hand them out. Also useful for digital reference on a tablet.',
+    },
   ],
+
+  ctaTitle: 'Need another format?',
+  ctaDesc:
+    'Stickers, pencil wraps, mugs, custom sizes — if you have a specific need, tell us about it.',
+  ctaBtn: 'Contact us',
 };
 
 const fr = {
   title: 'Fonctionnalités',
-  subtitle: "Tout ce qu'il faut pour donner vie à vos feuilles de personnage.",
+  subtitle: 'Tout ce que sheetmag.net fait pour vous à la table.',
+
+  featuresTitle: 'Ce que vous pouvez faire',
   features: [
     {
-      icon: '🔒',
-      title: 'Zéro stockage',
-      desc: "Vos données restent sur votre réseau. Rien n'est jamais envoyé ni stocké sur des serveurs externes — confidentialité totale.",
+      title: 'Connectez-vous à Foundry en quelques secondes',
+      desc: 'Ouvrez le panneau Sheet Magnet dans Foundry VTT, copiez le code de session et collez-le ici. Pas de compte, pas de configuration — vous êtes connecté.',
     },
     {
-      icon: '📄',
-      title: 'Export multi-format',
-      desc: "Exportez en PDF (A3, A4, A5, A6) ou en PNG format carte de poker. Choisissez la taille adaptée à votre table ou à votre service d'impression.",
+      title: 'Parcourez et choisissez vos personnages',
+      desc: 'Tous les acteurs visibles dans Foundry apparaissent dans la liste. Sélectionnez-en un ou plusieurs et exportez-les ensemble.',
     },
     {
-      icon: '📡',
-      title: 'Connexion par QR Code',
-      desc: 'Ouvrez Foundry, cliquez sur le bouton Sheet Magnet et scannez le QR code avec votre téléphone. Connecté en quelques secondes.',
+      title: "Prévisualisez avant d'exporter",
+      desc: 'Voyez un rendu en direct de votre fiche avant de la télécharger. Vérifiez que tout est correct — puis exportez.',
     },
     {
-      icon: '📱',
-      title: 'PWA Mobile-first',
-      desc: "Conçu pour les téléphones et tablettes. Installez-le comme une PWA et utilisez-le n'importe où, même hors ligne.",
+      title: 'Fonctionne sur tous les appareils',
+      desc: "Téléphone, tablette, ordinateur — l'interface s'adapte. Aucune application à installer : ouvrez l'URL et vous êtes prêt.",
     },
     {
-      icon: '🎲',
-      title: 'Tous les systèmes de jeu',
-      desc: 'Compatible avec chaque système de jeu Foundry VTT. Sélectionnez un ou plusieurs acteurs et exportez-les instantanément.',
+      title: 'Pour les joueurs sans accès MJ',
+      desc: "Pas accès au serveur ? Demandez à votre MJ d'exporter votre fiche en JSON via le bouton Sheet Magnet, puis importez-la ici directement.",
     },
     {
-      icon: '🖼️',
-      title: 'Moteur de templates',
-      desc: 'Un moteur de mise en page déclaratif lie les données des acteurs aux templates de cartes. Entièrement typé en TypeScript.',
-    },
-    {
-      icon: '🖨️',
-      title: "Services d'impression",
-      desc: 'Commandez des impressions physiques via Printful — cartes de poker, stickers et plus. (Bientôt disponible)',
-    },
-    {
-      icon: '👁️',
-      title: 'Aperçu en temps réel',
-      desc: 'Visualisez votre export en temps réel avec le rendu canvas Konva avant de télécharger ou de commander.',
+      title: 'Vos données restent sur votre réseau',
+      desc: "Rien n'est stocké sur des serveurs externes. La connexion se fait directement de votre navigateur à votre instance Foundry.",
     },
   ],
-  formats: "Formats d'export supportés",
-  formatsTable: [
-    ['Format', 'Taille', 'Usage'],
-    ['PDF A3', '297×420 mm', 'Poster'],
-    ['PDF A4', '210×297 mm', 'Feuille standard'],
-    ['PDF A5', '148×210 mm', 'Livret'],
-    ['PDF A6', '105×148 mm', 'Feuille de poche'],
-    ['PNG Card', '63×88 mm', 'Carte de poker (Printful)'],
-  ],
-  roadmap: 'Feuille de route',
-  roadmapItems: [
-    { done: true, text: 'Connecteur Foundry VTT' },
-    { done: true, text: 'Export PDF (A3–A6)' },
-    { done: true, text: 'Export PNG' },
-    { done: true, text: 'Format carte de poker' },
-    { done: true, text: 'Moteur de templates avec liaisons' },
-    { done: true, text: 'Aperçu en direct avec Konva' },
-    { done: true, text: 'Scanner QR code sur mobile' },
+
+  formatsTitle: "Formats d'impression",
+  formatsSubtitle:
+    'Choisissez le format adapté à votre table et à votre imprimante.',
+  formats: [
     {
-      done: false,
-      text: 'Templates spécifiques aux systèmes (City of Mist, D&D 5e, …)',
+      id: 'a4',
+      name: 'PDF A4',
+      size: '210 × 297 mm',
+      ideal: 'Impression à domicile',
+      desc: 'La fiche de personnage classique. Imprimez-la chez vous ou en reprographie. Idéale pour un classeur ou une pochette plastique.',
     },
-    { done: false, text: 'Intégration API Printful' },
     {
-      done: false,
-      text: "Plus de formats d'impression (stickers, porte-mines, mugs)",
+      id: 'a5',
+      name: 'PDF A5',
+      size: '148 × 210 mm',
+      ideal: 'Livret / carnet',
+      desc: "La moitié d'un A4. S'intègre parfaitement dans un carnet de campagne ou un petit dossier de jeu. Plus pratique à une table encombrée.",
+    },
+    {
+      id: 'a6',
+      name: 'PDF A6',
+      size: '105 × 148 mm',
+      ideal: 'Référence de poche',
+      desc: 'Format carte postale. Idéal comme aide-mémoire pour vos stats clés : glissez-le dans une poche ou posez-le à côté de vos dés.',
+    },
+    {
+      id: 'a3',
+      name: 'PDF A3',
+      size: '297 × 420 mm',
+      ideal: 'Affichage / écran MJ',
+      desc: "Grand format pour voir chaque détail d'un coup d'œil. Parfait comme poster sur la table ou accroché à un écran de MJ.",
+    },
+    {
+      id: 'card',
+      name: 'PNG Carte',
+      size: '63 × 88 mm',
+      ideal: 'Carte de poker / Printful',
+      desc: "Dimensions standard d'une carte de poker. Commandez des impressions physiques via Printful — protégez-les, battez-les, distribuez-les. Utile aussi en référence numérique sur tablette.",
     },
   ],
+
+  ctaTitle: "Besoin d'un autre format ?",
+  ctaDesc:
+    'Stickers, porte-mines, mugs, formats personnalisés — si vous avez un besoin spécifique, parlez-nous en.',
+  ctaBtn: 'Nous contacter',
 };
 
 const t = $derived($lang === 'fr' ? fr : en);
@@ -160,52 +170,57 @@ const t = $derived($lang === 'fr' ? fr : en);
     <p class="subtitle">{t.subtitle}</p>
   </section>
 
+  <!-- Features list -->
   <section class="section">
-    <div class="features-grid">
-      {#each t.features as feature}
-        <div class="feature-card">
-          <span class="feature-icon">{feature.icon}</span>
-          <h3>{feature.title}</h3>
-          <p>{feature.desc}</p>
+    <div class="inner">
+      <h2>{t.featuresTitle}</h2>
+      <div class="features-grid">
+        {#each t.features as feature}
+          <div class="feature-card">
+            <strong>{feature.title}</strong>
+            <p>{feature.desc}</p>
+          </div>
+        {/each}
+      </div>
+    </div>
+  </section>
+
+  <!-- Print formats -->
+  <section class="section section-alt">
+    <div class="inner">
+      <h2>{t.formatsTitle}</h2>
+      <p class="section-sub">{t.formatsSubtitle}</p>
+      <div class="formats-grid">
+        {#each t.formats as f}
+          <div class="format-card">
+            <div class="format-thumb format-thumb--{f.id}">
+              <!-- illustration placeholder -->
+            </div>
+            <div class="format-body">
+              <div class="format-header">
+                <strong>{f.name}</strong>
+                <span class="format-size">{f.size}</span>
+              </div>
+              <span class="format-ideal">{f.ideal}</span>
+              <p>{f.desc}</p>
+            </div>
+          </div>
+        {/each}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section">
+    <div class="inner">
+      <div class="format-cta">
+        <div>
+          <strong>{t.ctaTitle}</strong>
+          <p>{t.ctaDesc}</p>
         </div>
-      {/each}
+        <a href="/contact" class="btn btn-primary">{t.ctaBtn}</a>
+      </div>
     </div>
-  </section>
-
-  <section class="section">
-    <h2>{t.formats}</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            {#each t.formatsTable[0] as col}
-              <th>{col}</th>
-            {/each}
-          </tr>
-        </thead>
-        <tbody>
-          {#each t.formatsTable.slice(1) as row}
-            <tr>
-              {#each row as cell}
-                <td>{cell}</td>
-              {/each}
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="section">
-    <h2>{t.roadmap}</h2>
-    <ul class="roadmap-list">
-      {#each t.roadmapItems as item}
-        <li class:done={item.done}>
-          <span class="check">{item.done ? '✅' : '⬜'}</span>
-          {item.text}
-        </li>
-      {/each}
-    </ul>
   </section>
 </div>
 
@@ -213,12 +228,20 @@ const t = $derived($lang === 'fr' ? fr : en);
   .page {
     display: flex;
     flex-direction: column;
-    gap: 0;
+  }
+
+  .inner {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
   }
 
   .hero {
     text-align: center;
-    padding: var(--space-xl) var(--space-md);
+    padding: 3.5rem var(--space-lg);
+    background: linear-gradient(180deg, var(--color-bg-secondary) 0%, var(--color-bg) 100%);
+    border-bottom: 1px solid var(--color-border);
   }
 
   .hero h1 {
@@ -229,120 +252,172 @@ const t = $derived($lang === 'fr' ? fr : en);
   .subtitle {
     color: var(--color-text-muted);
     font-size: 1.05rem;
-    max-width: 480px;
+    max-width: 560px;
     margin: 0 auto;
+    line-height: 1.6;
   }
 
   .section {
-    padding: var(--space-xl) var(--space-md);
+    padding: 3rem var(--space-lg);
     border-top: 1px solid var(--color-border);
+  }
+
+  .section-alt {
+    background: var(--color-bg-secondary);
   }
 
   .section h2 {
     margin-bottom: var(--space-lg);
   }
 
+  .section-sub {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    margin-bottom: var(--space-xl);
+    margin-top: calc(-1 * var(--space-sm));
+  }
+
+  /* Features grid */
   .features-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: var(--space-md);
   }
 
   .feature-card {
-    background-color: var(--color-bg-card);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-lg) var(--space-xl);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
+  }
+
+  .feature-card strong {
+    font-size: 1rem;
+    color: var(--color-text);
+  }
+
+  .feature-card p {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+  }
+
+  /* Format placeholder illustration */
+  .format-thumb {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Inner sheet silhouette */
+  .format-thumb::after {
+    content: '';
+    position: absolute;
+    inset: 16px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border-light);
+    border-radius: 2px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Ratio par format — hauteur fixe, largeur via aspect-ratio */
+  .format-thumb--a3  { aspect-ratio: 297 / 420; max-height: 180px; width: 100%; }
+  .format-thumb--a4  { aspect-ratio: 210 / 297; max-height: 180px; width: 100%; }
+  .format-thumb--a5  { aspect-ratio: 148 / 210; max-height: 180px; width: 100%; }
+  .format-thumb--a6  { aspect-ratio: 105 / 148; max-height: 180px; width: 100%; }
+  .format-thumb--card { aspect-ratio: 63 / 88;  max-height: 180px; width: 100%; }
+
+  /* Formats grid */
+  .formats-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .format-card {
+    display: flex;
+    flex-direction: column;
     padding: var(--space-lg);
+    background: var(--color-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+  }
+
+  .format-body {
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
   }
 
-  .feature-icon {
-    font-size: 1.75rem;
+  .format-header {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-md);
   }
 
-  .feature-card h3 {
+  .format-header strong {
     font-size: 1rem;
   }
 
-  .feature-card p {
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
-    line-height: 1.5;
-  }
-
-  .table-wrap {
-    overflow-x: auto;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-  }
-
-  th, td {
-    text-align: left;
-    padding: var(--space-sm) var(--space-md);
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  th {
-    color: var(--color-text-muted);
-    font-weight: 600;
+  .format-size {
     font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .format-ideal {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-primary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
-  tr:last-child td {
-    border-bottom: none;
-  }
-
-  .roadmap-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .roadmap-list li {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-md);
-    background-color: var(--color-bg-card);
-    border-radius: var(--radius-md);
+  .format-card p {
     font-size: 0.9rem;
     color: var(--color-text-muted);
+    line-height: 1.6;
   }
 
-  .roadmap-list li.done {
-    color: var(--color-text);
+  /* Bottom CTA */
+  .format-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-xl);
+    flex-wrap: wrap;
   }
 
-  .check {
-    font-size: 1rem;
-    flex-shrink: 0;
+  .format-cta strong {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .format-cta p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    max-width: 480px;
   }
 
   @media (min-width: 640px) {
-    .hero h1 {
-      font-size: 2.5rem;
-    }
-
-    .section {
-      padding: var(--space-xl);
-    }
-
-    .features-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
+    .hero h1 { font-size: 2.5rem; }
+    .features-grid { grid-template-columns: 1fr 1fr; }
+    .formats-grid { grid-template-columns: 1fr 1fr; }
   }
 
   @media (min-width: 900px) {
-    .features-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
+    .features-grid { grid-template-columns: repeat(3, 1fr); }
+    .formats-grid { grid-template-columns: repeat(3, 1fr); }
   }
 </style>
