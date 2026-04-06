@@ -15,6 +15,7 @@
 
 const MODULE_ID = 'sheet-magnet-connector';
 const SOCKET_KEY = `module.${MODULE_ID}`;
+const RELAY_URL = 'wss://sheetmagnet-production.up.railway.app';
 
 class SheetMagnetAPI {
   constructor() {
@@ -136,17 +137,41 @@ Hooks.once('ready', () => {
   const api = new SheetMagnetAPI();
   game.modules.get(MODULE_ID).api = api;
 
-  // Register socket listener — responds to PWA requests
+  // Register socket listener — responds to PWA requests (direct connection)
   game.socket.on(SOCKET_KEY, (payload, senderId) => {
     // Only the GM processes requests (avoids duplicate responses)
     if (!game.user.isGM) return;
 
     const response = api.handleSocketMessage(payload);
-    // Send response back via socket
     game.socket.emit(SOCKET_KEY, {
       responseId: payload.requestId,
       ...response,
     });
+  });
+
+  // Connect to relay — responds to PWA requests via relay (Forge VTT)
+  const relaySessionId = crypto.randomUUID();
+  api.relaySessionId = relaySessionId;
+  const relayWs = new WebSocket(`${RELAY_URL}?session=${relaySessionId}&role=foundry`);
+
+  relayWs.addEventListener('message', (event) => {
+    if (!game.user.isGM) return;
+    try {
+      const payload = JSON.parse(event.data);
+      if (payload.type === 'peer_connected') return; // system message
+      const response = api.handleSocketMessage(payload);
+      relayWs.send(JSON.stringify({ responseId: payload.requestId, ...response }));
+    } catch (e) {
+      console.error(`${MODULE_ID} | Relay error:`, e);
+    }
+  });
+
+  relayWs.addEventListener('open', () => {
+    console.log(`${MODULE_ID} | Relay connected — session: ${relaySessionId}`);
+  });
+
+  relayWs.addEventListener('error', () => {
+    console.warn(`${MODULE_ID} | Relay unavailable`);
   });
 
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -224,6 +249,7 @@ class SheetMagnetConnectionDialog extends Application {
     return {
       connectionUrl: this.connectionUrl,
       token: this.api.token,
+      relaySessionId: this.api.relaySessionId ?? null,
       deepLink,
       qrData: deepLink,
     };
@@ -245,6 +271,16 @@ class SheetMagnetConnectionDialog extends Application {
     html.find('.copy-url').on('click', async () => {
       await navigator.clipboard.writeText(this.connectionUrl);
       ui.notifications.info('URL copied');
+    });
+
+    html.find('.copy-relay-session').on('click', async () => {
+      await navigator.clipboard.writeText(this.api.relaySessionId ?? '');
+      ui.notifications.info('Session code copied');
+    });
+
+    html.find('.copy-token-relay').on('click', async () => {
+      await navigator.clipboard.writeText(this.api.token);
+      ui.notifications.info('Token copied');
     });
   }
 }

@@ -9,6 +9,7 @@ import {
   connection,
   connect,
   connectFromEncoded,
+  connectViaRelay,
   isConnected,
 } from '$lib/stores/session';
 
@@ -19,6 +20,8 @@ let url = $state(
     : '',
 );
 let token = $state('');
+let relayCode = $state('');
+let relayToken = $state('');
 let isLoading = $state(false);
 let isScanning = $state(false);
 let scanError = $state('');
@@ -51,6 +54,12 @@ const t = $derived(
         invalidQr:
           'QR code invalide. Veuillez scanner le QR code Sheet Magnet depuis Foundry.',
         cameraError: 'Accès à la caméra refusé ou non disponible.',
+        relayTitle: 'Connexion via Forge VTT',
+        relayHint:
+          'Pour Forge VTT, cliquez sur Sheet Magnet dans Foundry, puis entrez le code de session et le jeton affichés.',
+        relayCode: 'Code de session',
+        relayToken: 'Jeton',
+        relayConnect: 'Connecter via relay',
       }
     : {
         heroSubtitle:
@@ -71,6 +80,12 @@ const t = $derived(
         invalidQr:
           'Invalid QR code. Please scan the Sheet Magnet QR code from Foundry.',
         cameraError: 'Camera access denied or not available.',
+        relayTitle: 'Connect via Forge VTT',
+        relayHint:
+          'For Forge VTT, click Sheet Magnet in Foundry, then enter the session code and token shown.',
+        relayCode: 'Session code',
+        relayToken: 'Token',
+        relayConnect: 'Connect via relay',
       },
 );
 
@@ -104,6 +119,18 @@ async function handleManualConnect() {
   localStorage.setItem(STORAGE_KEY, url);
   isLoading = true;
   const success = await connect(url, token);
+  isLoading = false;
+
+  if (success) {
+    goto('/select');
+  }
+}
+
+async function handleRelayConnect() {
+  if (!relayCode || !relayToken) return;
+
+  isLoading = true;
+  const success = await connectViaRelay(relayCode.trim(), relayToken.trim());
   isLoading = false;
 
   if (success) {
@@ -252,6 +279,56 @@ $effect(() => {
           {t.connecting}
         {:else}
           {t.connect}
+        {/if}
+      </button>
+    </div>
+
+    <div class="card" style="margin-top: var(--space-xl);">
+      <h3 style="margin-bottom: var(--space-md);">{t.relayTitle}</h3>
+      <p style="color: var(--color-text-muted); margin-bottom: var(--space-md);">
+        {t.relayHint}
+      </p>
+
+      <div class="form-group">
+        <label for="relay-code">{t.relayCode}</label>
+        <input
+          id="relay-code"
+          type="text"
+          bind:value={relayCode}
+          placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+          disabled={isLoading}
+          style="font-family: var(--font-mono);"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="relay-token">{t.relayToken}</label>
+        <input
+          id="relay-token"
+          type="text"
+          bind:value={relayToken}
+          placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+          disabled={isLoading}
+          style="font-family: var(--font-mono);"
+        />
+      </div>
+
+      {#if $connection.error}
+        <div class="error" style="margin-bottom: var(--space-md);">
+          {$connection.error}
+        </div>
+      {/if}
+
+      <button
+        class="btn btn-primary btn-block"
+        onclick={handleRelayConnect}
+        disabled={isLoading || !relayCode || !relayToken}
+      >
+        {#if isLoading}
+          <span class="spinner"></span>
+          {t.connecting}
+        {:else}
+          {t.relayConnect}
         {/if}
       </button>
     </div>

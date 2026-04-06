@@ -10,10 +10,11 @@ import type {
   FoundryServerInfo,
 } from '$lib/connectors/foundry';
 import { FoundryConnector } from '$lib/connectors/foundry';
+import { RelayConnector } from '$lib/connectors/relay';
 
 // Connection state
 interface ConnectionState {
-  connector: FoundryConnector | null;
+  connector: FoundryConnector | RelayConnector | null;
   serverInfo: FoundryServerInfo | null;
   status: 'disconnected' | 'connecting' | 'connected' | 'error';
   error: string | null;
@@ -170,6 +171,31 @@ export function deselectActor(actorId: string): void {
 
 export function clearSelection(): void {
   selectedActorIds.set(new Set());
+}
+
+export async function connectViaRelay(
+  sessionId: string,
+  token: string,
+): Promise<boolean> {
+  connection.update((s) => ({ ...s, status: 'connecting', error: null }));
+
+  try {
+    const connector = new RelayConnector(sessionId, token);
+    const serverInfo = await connector.connect();
+
+    connection.set({ connector, serverInfo, status: 'connected', error: null });
+    return true;
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : 'Relay connection failed';
+    connection.set({
+      connector: null,
+      serverInfo: null,
+      status: 'error',
+      error: message,
+    });
+    return false;
+  }
 }
 
 export function disconnect(): void {
