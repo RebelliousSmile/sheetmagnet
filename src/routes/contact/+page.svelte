@@ -248,7 +248,7 @@ function restart() {
 
       <!-- Step 1: Subject -->
       {#if step === 'subject'}
-        <h2>{t.subjectTitle}</h2>
+        <h3>{t.subjectTitle}</h3>
         <div class="subject-grid">
           {#each subjects as s}
             <button
