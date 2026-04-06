@@ -2,7 +2,7 @@
   "id": "sheet-magnet-connector",
   "title": "Sheet Magnet Connector",
   "description": "Expose actors to Sheet Magnet PWA for export to multiple formats",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "compatibility": {
     "minimum": "12",
     "verified": "14"
