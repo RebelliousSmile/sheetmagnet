@@ -1,11 +1,10 @@
 <script lang="ts">
 import Nav from '$lib/components/Nav.svelte';
 import { lang } from '$lib/stores/lang';
-import { env } from '$env/dynamic/public';
-
 const CONTACT_ENDPOINT =
   'https://sheetmagnet-production.up.railway.app/contact';
-const CONTACT_TOKEN = env.PUBLIC_CONTACT_TOKEN ?? '';
+// Token baked at build time — set PUBLIC_CONTACT_TOKEN in .env before building
+const CONTACT_TOKEN: string = import.meta.env.PUBLIC_CONTACT_TOKEN ?? '';
 
 type Subject = 'feature' | 'system' | 'partnership' | 'other';
 type Step = 'subject' | 'details' | 'review' | 'done' | 'error';
