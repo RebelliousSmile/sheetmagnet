@@ -21,6 +21,9 @@ import nodemailer from 'nodemailer';
 const PORT = process.env.PORT || 3001;
 const IDLE_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://sheetmag.net';
+// Static token shared with the frontend — must match CONTACT_TOKEN env var on both sides.
+// If not set, contact endpoint is disabled (fail-safe).
+const CONTACT_TOKEN = process.env.CONTACT_TOKEN || '';
 
 // ── SMTP (Alwaysdata) ───────────────────────────────────────────────────────
 const smtpTransport = nodemailer.createTransport({
@@ -91,7 +94,7 @@ const httpServer = createServer((req, res) => {
   const allowedOrigin = origin === ALLOWED_ORIGIN ? origin : '';
   res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Contact-Token');
   res.setHeader('Vary', 'Origin');
 
   if (req.method === 'OPTIONS') {
@@ -107,14 +110,27 @@ const httpServer = createServer((req, res) => {
   }
 
   if (req.url === '/contact' && req.method === 'POST') {
-    // Reject requests from unexpected origins
+    // Reject requests from unexpected origins (browser-level guard)
     if (!allowedOrigin) {
       res.writeHead(403, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'forbidden' }));
       return;
     }
 
-    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+    // Static token check — guards against non-browser bots that can forge Origin
+    const providedToken = req.headers['x-contact-token'] || '';
+    if (!CONTACT_TOKEN || providedToken !== CONTACT_TOKEN) {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'forbidden' }));
+      return;
+    }
+
+    // Use the LAST value in X-Forwarded-For (added by Railway's trusted proxy),
+    // not the first (which is attacker-controlled). Fall back to socket address.
+    const xForwardedFor = req.headers['x-forwarded-for'];
+    const ip = xForwardedFor
+      ? xForwardedFor.split(',').at(-1)?.trim() ?? 'unknown'
+      : req.socket.remoteAddress || 'unknown';
 
     if (!checkRateLimit(ip)) {
       res.writeHead(429, { 'Content-Type': 'application/json' });

@@ -1,9 +1,11 @@
 <script lang="ts">
 import Nav from '$lib/components/Nav.svelte';
 import { lang } from '$lib/stores/lang';
+import { env } from '$env/dynamic/public';
 
 const CONTACT_ENDPOINT =
   'https://sheetmagnet-production.up.railway.app/contact';
+const CONTACT_TOKEN = env.PUBLIC_CONTACT_TOKEN ?? '';
 
 type Subject = 'feature' | 'system' | 'partnership' | 'other';
 type Step = 'subject' | 'details' | 'review' | 'done' | 'error';
@@ -170,7 +172,10 @@ async function submit() {
   try {
     const res = await fetch(CONTACT_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Contact-Token': CONTACT_TOKEN,
+      },
       body: JSON.stringify({
         subject,
         name: sanitize(name),
