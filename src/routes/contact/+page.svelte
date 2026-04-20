@@ -1,10 +1,7 @@
 <script lang="ts">
 import Nav from '$lib/components/Nav.svelte';
 import { lang } from '$lib/stores/lang';
-const CONTACT_ENDPOINT =
-  'https://sheetmagnet-production.up.railway.app/contact';
-// Token baked at build time — set PUBLIC_CONTACT_TOKEN in .env before building
-const CONTACT_TOKEN: string = import.meta.env.PUBLIC_CONTACT_TOKEN ?? '';
+const CONTACT_ENDPOINT = '/contact';
 
 type Subject = 'feature' | 'system' | 'partnership' | 'other';
 type Step = 'subject' | 'details' | 'review' | 'done' | 'error';
@@ -173,7 +170,6 @@ async function submit() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Contact-Token': CONTACT_TOKEN,
       },
       body: JSON.stringify({
         subject,
