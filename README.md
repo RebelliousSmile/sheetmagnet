@@ -1,5 +1,9 @@
 # Sheet Magnet
 
+> **⚠️ This project is no longer maintained.** Development has been discontinued. The codebase is provided as-is for reference purposes. No further updates, bug fixes, or support will be provided.
+
+---
+
 > Export your TTRPG character sheets to anything
 
 Sheet Magnet connects to your Foundry VTT instance and exports character sheets to multiple formats — from PDF to poker cards to pencil wraps.
